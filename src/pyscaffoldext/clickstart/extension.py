@@ -20,12 +20,7 @@ from . import templates as my_templates
 
 NO_OVERWRITE = no_overwrite()
 
-REQUIREMENT_DEPENDENCIES = (
-    "importlib-metadata",
-    "python_version>=3.9,<3.10",
-    "pyscaffold>=4.1,<5.0a0",
-    "click>=8.0",
-)
+REQUIREMENT_DEPENDENCIES = ('importlib-metadata; python_version>"3.9"', "click>=8.0")
 
 
 class Clickstart(Extension):
