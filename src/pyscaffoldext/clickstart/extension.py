@@ -21,6 +21,7 @@ from . import templates as my_templates
 NO_OVERWRITE = no_overwrite()
 
 REQUIREMENT_DEPENDENCIES = ('importlib-metadata; python_version>"3.9"', "click>=8.0")
+PYTHON_REQUIRES = "python_requires = >=3.9"
 
 
 class Clickstart(Extension):
@@ -44,9 +45,8 @@ def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     """Adds the click_skeleton template. See :obj:`pyscaffold.actions.Action`"""
 
     template = get_template("click_skeleton", relative_to=my_templates)
-
     files: Structure = {
-        "src": {opts["package"]: {"skeleton.py": (template, NO_OVERWRITE)}},
+        "src": {opts["package"]: {f'{opts["package"]}.py': (template, NO_OVERWRITE)}},
         "setup.cfg": modify_setupcfg(struct["setup.cfg"], opts),
     }
 
@@ -74,15 +74,44 @@ def modify_setupcfg(definition: Leaf, opts: ScaffoldOpts) -> ResolvedLeaf:
     setupcfg = ConfigUpdater()
     setupcfg.read_string(reify_content(contents, opts))
 
-    modifiers = (add_requirements,)
+    modifiers = (add_install_requires, py_requires, add_entry_point)
     new_setupcfg = reduce(lambda acc, fn: fn(acc, opts), modifiers, setupcfg)
 
     return str(new_setupcfg), original_op
 
 
-def add_requirements(setupcfg: ConfigUpdater, _opts) -> ConfigUpdater:
+def add_install_requires(setupcfg: ConfigUpdater, _opts) -> ConfigUpdater:
     """Add [options.install_requires] requirements"""
-
     requires = setupcfg["options"]
     requires["install_requires"].set_values(REQUIREMENT_DEPENDENCIES)
+    return setupcfg
+
+
+def py_requires(setupcfg: ConfigUpdater, _opts) -> ConfigUpdater:
+    """Replace
+    # python_requires = >=3.8
+        with
+    python_requires = >=3.9"""
+    (
+        setupcfg["options"]["install_requires"]
+        .add_before.comment("# Minimum Python Version 3.9 required")
+        .option("python_requires", ">=3.9,<3.10")
+    )
+
+    return setupcfg
+
+
+def add_entry_point(setupcfg: ConfigUpdater, opts: ScaffoldOpts) -> ConfigUpdater:
+    """Adds the extension's entry_point to setup.cfg"""
+    entry_points_key = "options.entry_points"
+
+    if not setupcfg.has_section(entry_points_key):
+        setupcfg["options"].add_after.section(entry_points_key)
+
+    entry_points = setupcfg[entry_points_key]
+    entry_points.insert_at(0).option("console_scripts")
+    template = "{package} = {package}.{package}:run"
+    value = template.format(file_name="py", **opts)
+    entry_points["console_scripts"].set_values([value])
+
     return setupcfg
