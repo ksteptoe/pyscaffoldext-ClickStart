@@ -3,7 +3,7 @@ ClickStart
 ==========
 
 
-Add a short description here!
+An extension to pyscaffold to use click as CLI
 
 
 Usage

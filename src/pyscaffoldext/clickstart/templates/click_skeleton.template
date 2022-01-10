@@ -12,6 +12,7 @@ which will install the command ``fibonacci`` inside your current environment.
 import argparse
 import logging
 import sys
+import click
 
 from ${qual_pkg} import __version__
 
