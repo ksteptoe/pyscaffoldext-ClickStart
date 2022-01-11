@@ -3,7 +3,6 @@ To install run ``pip install .`` (or ``pip install -e .`` for editable mode)
 which will install the command $(package) inside your current environment.
 """
 
-import argparse
 import logging
 import sys
 import click
@@ -60,7 +59,7 @@ def main(n: int, loglevel: int ):
       loglevel: int
     """
     setup_logging(loglevel)
-    _logger.debug("Starting crazy calculations...")
+    _logger.info("$(package): Version: {__version__}")
     print("The {}-th Fibonacci number is {}".format(n, ${package}(n)))
     _logger.info("Script ends here")
 
