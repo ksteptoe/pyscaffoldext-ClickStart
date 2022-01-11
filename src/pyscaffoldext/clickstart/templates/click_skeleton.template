@@ -59,7 +59,7 @@ def main(n: int, loglevel: int ):
       loglevel: int
     """
     setup_logging(loglevel)
-    _logger.info(f"{$(package)}: Version: {__version__}")
+    _logger.info(f"Version: {__version__}")
     print("The {}-th Fibonacci number is {}".format(n, ${package}(n)))
     _logger.info("Script ends here")
 
