@@ -48,9 +48,9 @@ class Clickstart(Extension):
 def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     """Adds the click_skeleton template. See :obj:`pyscaffold.actions.Action`"""
 
-    template = get_template("click_skeleton", relative_to=my_templates)
+    cli_template = get_template("cli", relative_to=my_templates)
     files: Structure = {
-        "src": {opts["package"]: {'cli.py': (template, NO_OVERWRITE)}},
+        "src": {opts["package"]: {'cli.py': (cli_template, NO_OVERWRITE)}},
         "setup.cfg": modify_setupcfg(struct["setup.cfg"], opts),
     }
 
