@@ -46,19 +46,27 @@ class Clickstart(Extension):
 
 
 def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Adds the click_skeleton template. See :obj:`pyscaffold.actions.Action`"""
+    """Adds the click_skeleton template in cli
+       Adds api_skeleton
+       __main__.py as a runner
+    See :obj:`pyscaffold.actions.Action`"""
 
     cli_template = get_template("cli", relative_to=my_templates)
+    api_template = get_template("api", relative_to=my_templates)
+    runner_template = get_template('runner', relative_to=my_templates)
     files: Structure = {
-        "src": {opts["package"]: {'cli.py': (cli_template, NO_OVERWRITE)}},
-        "setup.cfg": modify_setupcfg(struct["setup.cfg"], opts),
+        "src": {opts["package"]: {'cli.py': (cli_template, NO_OVERWRITE),
+                                  'api.py': (api_template, NO_OVERWRITE)}},
+        "__main__.py": (runner_template, NO_OVERWRITE),
+        "setup.cfg": modify_setupcfg(struct["setup.cfg"], opts)
     }
 
     return merge(struct, files), opts
 
 
 def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Rejects the default skeleton template. See :obj:`pyscaffold.actions.Action`"""
+    """Rejects the default skeleton template.
+    See :obj:`pyscaffold.actions.Action`"""
 
     file = Path("src", opts["package"], "skeleton.py")
 
@@ -114,7 +122,7 @@ def add_entry_point(setupcfg: ConfigUpdater, opts: ScaffoldOpts) -> ConfigUpdate
 
     entry_points = setupcfg[entry_points_key]
     entry_points.insert_at(0).option("console_scripts")
-    template = "{package} = {package}.cli:run"
+    template = "{package} = {package}.cli:cli"
     value = template.format(file_name="py", **opts)
     entry_points["console_scripts"].set_values([value])
 

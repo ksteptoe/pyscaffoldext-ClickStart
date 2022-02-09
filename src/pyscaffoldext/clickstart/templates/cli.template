@@ -4,29 +4,16 @@ which will install the command $(package) inside your current environment.
 """
 
 import logging
-import sys
 import click
-from .api import $(package)_api
-
-from ${qual_pkg} import __version__
+from .api import ${package}_api
 
 __author__ = "${author}"
 __copyright__ = "${author}"
 __license__ = "${license}"
 
+from ${qual_pkg} import __version__
+
 _logger = logging.getLogger(__name__)
-
-
-def setup_logging(loglevel):
-    """Setup basic logging
-
-    Args:
-      loglevel (int): minimum loglevel for emitting messages
-    """
-    logformat = "[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
-    logging.basicConfig(
-        level=loglevel, stream=sys.stdout, format=logformat, datefmt="%Y-%m-%d %H:%M:%S"
-    )
 
 
 @click.command()
@@ -39,7 +26,7 @@ def cli(n, loglevel):
 
     This function can be used as entry point to create console scripts with setuptools.
     """
-    $(package)_api(n, loglevel)
+    ${package}_api(n, loglevel)
 
 
 if __name__ == "__main__":
@@ -51,6 +38,6 @@ if __name__ == "__main__":
     # After installing your project with pip, users can also run this Python
     # modules as scripts via the ``-m`` flag, as defined in PEP 338::
     #
-    #     python -m $(package).$(package) 42
+    #     python -m ${package}.${package} 42
     #
     cli()

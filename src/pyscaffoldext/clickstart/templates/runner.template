@@ -1,7 +1,7 @@
-"""  Convenience wrapper for $(package) to run directly from source tree
+"""  Convenience wrapper for ${package} to run directly from source tree
 """
 
-from $(package).$(package) import run
+from ${package}.${package} import cli
 
 if __name__ == "__main__":
-    run()
+    cli()
