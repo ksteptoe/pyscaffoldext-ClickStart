@@ -20,7 +20,11 @@ from . import templates as my_templates
 
 NO_OVERWRITE = no_overwrite()
 
-REQUIREMENT_DEPENDENCIES = ('importlib-metadata; python_version>"3.9"', "click>=8.0")
+REQUIREMENT_DEPENDENCIES = ('importlib-metadata; python_version>"3.9"',
+                            "click>=8.0",
+                            'pytest',
+                            'pytest-cov',
+                            )
 PYTHON_REQUIRES = "python_requires = >=3.9"
 
 
@@ -46,7 +50,7 @@ def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
 
     template = get_template("click_skeleton", relative_to=my_templates)
     files: Structure = {
-        "src": {opts["package"]: {f'{opts["package"]}.py': (template, NO_OVERWRITE)}},
+        "src": {opts["package"]: {'cli.py': (template, NO_OVERWRITE)}},
         "setup.cfg": modify_setupcfg(struct["setup.cfg"], opts),
     }
 
@@ -110,7 +114,7 @@ def add_entry_point(setupcfg: ConfigUpdater, opts: ScaffoldOpts) -> ConfigUpdate
 
     entry_points = setupcfg[entry_points_key]
     entry_points.insert_at(0).option("console_scripts")
-    template = "{package} = {package}.{package}:run"
+    template = "{package} = {package}.cli:run"
     value = template.format(file_name="py", **opts)
     entry_points["console_scripts"].set_values([value])
 

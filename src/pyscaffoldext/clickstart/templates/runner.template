@@ -1,0 +1,7 @@
+"""  Convenience wrapper for $(package) to run directly from source tree
+"""
+
+from $(package).$(package) import run
+
+if __name__ == "__main__":
+    run()

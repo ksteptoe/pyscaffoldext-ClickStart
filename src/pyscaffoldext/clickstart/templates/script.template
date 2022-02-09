@@ -1,0 +1,6 @@
+""" $(package).__main__: executed when bootstrap directory is called as a script.
+"""
+
+from .xpense import main
+
+main()
