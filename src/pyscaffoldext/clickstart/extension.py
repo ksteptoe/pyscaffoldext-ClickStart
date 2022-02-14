@@ -54,11 +54,13 @@ def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     cli_template = get_template("cli", relative_to=my_templates)
     api_template = get_template("api", relative_to=my_templates)
     runner_template = get_template('runner', relative_to=my_templates)
+    conftest_template = get_template('conftest', relative_to=my_templates)
     files: Structure = {
         "src": {opts["package"]: {'cli.py': (cli_template, NO_OVERWRITE),
                                   'api.py': (api_template, NO_OVERWRITE)}},
         "__main__.py": (runner_template, NO_OVERWRITE),
-        "setup.cfg": modify_setupcfg(struct["setup.cfg"], opts)
+        "setup.cfg": modify_setupcfg(struct["setup.cfg"], opts),
+        "tests": {'conftest.py': (conftest_template, NO_OVERWRITE)}
     }
 
     return merge(struct, files), opts
