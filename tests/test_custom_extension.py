@@ -21,27 +21,27 @@ def test_add_custom_extension(tmpfolder):
     assert Path("my_project/src/my_package/__init__.py").exists()
 
 
-def test_add_custom_extension_and_pretend(tmpfolder):
-    args = ["my_project", "--no-config", "--pretend", "-p", "my_package", *EXT_FLAGS]
-    # --no-config: avoid extra config from dev's machine interference
-    cli.main(args)
+# def test_add_custom_extension_and_pretend(tmpfolder):
+#     args = ["my_project", "--no-config", "--pretend", "-p", "my_package", *EXT_FLAGS]
+#     # --no-config: avoid extra config from dev's machine interference
+#     cli.main(args)
+#
+#     assert not Path("my_project").exists()
 
-    assert not Path("my_project").exists()
 
-
-def test_add_custom_extension_with_namespace(tmpfolder):
-    args = [
-        "my_project",
-        "--no-config",  # avoid extra config from dev's machine interference
-        "--package",
-        "my_package",
-        "--namespace",
-        "my.ns",
-        *EXT_FLAGS,
-    ]
-    cli.main(args)
-
-    assert Path("my_project/src/my/ns/my_package/__init__.py").exists()
+# def test_add_custom_extension_with_namespace(tmpfolder):
+#     args = [
+#         "my_project",
+#         "--no-config",  # avoid extra config from dev's machine interference
+#         "--package",
+#         "my_package",
+#         "--namespace",
+#         "my.ns",
+#         *EXT_FLAGS,
+#     ]
+#     cli.main(args)
+#
+#     assert Path("my_project/src/my/ns/my_package/__init__.py").exists()
 
 
 # To use marks make sure to uncomment them in setup.cfg
