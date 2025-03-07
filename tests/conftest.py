@@ -26,10 +26,16 @@ from .helpers import rmpath
 def tmpfolder():
     """Fixture to use a known local directory instead of a temporary one."""
     old_path = Path.cwd()
-    known_directory = old_path /  "tmp"  # Set this to your desired folder
+    known_directory = Path(r"C:\Users\Kevin.Steptoe\tmp")
 
-    # Ensure the directory exists
-    known_directory.mkdir(parents=True, exist_ok=True)
+    # Ensure the directory exists ONLY IF it does not exist
+    if not known_directory.exists():
+        known_directory.mkdir(parents=True)
+
+    # Check if "myproject" exists inside known_directory, and remove it if it does
+    myproject_dir = known_directory / "my_project"
+    if myproject_dir.exists() and myproject_dir.is_dir():
+        rmpath(myproject_dir)
 
     # Change into the known directory
     os.chdir(known_directory)
@@ -39,4 +45,3 @@ def tmpfolder():
     finally:
         # Change back to the original working directory
         os.chdir(old_path)
-
