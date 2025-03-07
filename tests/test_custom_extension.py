@@ -15,7 +15,7 @@ EXT_FLAGS = [Clickstart().flag]
 
 
 def test_add_custom_extension(tmpfolder):
-    args = ["my_project", "--no-config", "-p", "my_package", *EXT_FLAGS]
+    args = ["my_project", "--no-config", "--venv", "-p", "my_package", *EXT_FLAGS]
     # --no-config: avoid extra config from dev's machine interference
     cli.main(args)
     assert Path("my_project/src/my_package/__init__.py").exists()
