@@ -45,8 +45,14 @@ class Clickstart(Extension):
         actions = self.register(actions, modify_pyproject_toml)
         # ^ Adds Black settings
 
-        actions = self.register(actions, modify_setup_py)
+        actions = self.register(actions, modify_gitignore)
+        # ^ Adds _version.py to .gitignore
+
+        # actions = self.register(actions, modify_setup_py)
         # ^ Updates use_scm_version in setup.py
+
+        actions = self.register(actions, remove_setup_py)
+        # ^ Prevents setup.py from being created
 
         return actions
 
@@ -230,3 +236,47 @@ def modify_setup_py(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     struct[setup_path] = (updated_contents, original_op)
 
     return struct, opts
+
+
+def remove_setup_py(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
+    """Prevent setup.py from being generated."""
+    setup_path = Path("setup.py")
+
+    return reject(struct, setup_path), opts
+
+def modify_gitignore(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
+    """Modify .gitignore to include src/{package}/_version.py"""
+
+    gitignore_path = ".gitignore"
+
+    # Check if .gitignore exists in struct
+    if gitignore_path not in struct:
+        return struct, opts  # Skip modification if missing
+
+    # Resolve the leaf to get actual contents
+    contents, original_op = resolve_leaf(struct[gitignore_path])
+
+    # Ensure contents are resolved correctly using `reify_content`
+    contents = reify_content(contents, opts)
+
+    # Ensure we have a valid string
+    if not isinstance(contents, str):
+        raise TypeError(f"Expected string for {gitignore_path}, got {type(contents).__name__}")
+
+    # Get the package name dynamically
+    package_name = opts["package"]
+    version_file = f"src/{package_name}/_version.py"
+
+    # Check if _version.py is already ignored
+    if version_file in contents:
+        return struct, opts  # Skip modification if already present
+
+    # Append the ignore rule at the end of the file
+    updated_contents = contents.strip() + f"\n{version_file}\n"
+
+    # Modify struct to apply changes before writing
+    struct[gitignore_path] = (updated_contents, original_op)
+
+    return struct, opts
+
+
