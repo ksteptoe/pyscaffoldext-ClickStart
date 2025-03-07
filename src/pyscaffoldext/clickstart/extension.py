@@ -42,6 +42,12 @@ class Clickstart(Extension):
         actions = self.register(actions, reject_file)
         # ^ Activate a reject to prevent default 'skeleton.py' being generated.
 
+        actions = self.register(actions, modify_pyproject_toml)
+        # ^ Adds Black settings
+
+        actions = self.register(actions, modify_setup_py)
+        # ^ Updates use_scm_version in setup.py
+
         return actions
 
 
@@ -109,7 +115,7 @@ def py_requires(setupcfg: ConfigUpdater, _opts) -> ConfigUpdater:
     (
         setupcfg["options"]["install_requires"]
         .add_before.comment("# Minimum Python Version 3.9 required")
-        .option("python_requires", ">=3.9,<3.10")
+        .option("python_requires", ">=3.9,<3.13")
     )
 
     return setupcfg
@@ -129,3 +135,98 @@ def add_entry_point(setupcfg: ConfigUpdater, opts: ScaffoldOpts) -> ConfigUpdate
     entry_points["console_scripts"].set_values([value])
 
     return setupcfg
+
+def modify_pyproject_toml(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
+    """Modify pyproject.toml to add Black, setuptools_scm, and pytest configuration with extra spacing."""
+
+    toml_path = "pyproject.toml"
+
+    # Check if pyproject.toml is in struct
+    if toml_path not in struct:
+        return struct, opts  # Skip modification if missing
+
+    # Resolve the leaf to get actual contents
+    contents, original_op = resolve_leaf(struct[toml_path])
+
+    # Ensure contents are resolved correctly using `reify_content`
+    contents = reify_content(contents, opts)
+
+    # Ensure we have a valid string
+    if not isinstance(contents, str):
+        raise TypeError(f"Expected string for {toml_path}, got {type(contents).__name__}")
+
+    # Parse the existing pyproject.toml
+    pyproject = ConfigUpdater()
+    pyproject.read_string(contents)
+
+    # Get the package name dynamically from opts
+    package_name = opts["package"]
+    write_to_path = f'src/{package_name}/_version.py'  # Correct path
+
+    # --- Add setuptools_scm settings ---
+    if not pyproject.has_section("tool.setuptools_scm"):
+        pyproject.add_section("tool.setuptools_scm")
+
+    pyproject["tool.setuptools_scm"].set("version_scheme", '"guess-next-dev"')
+    pyproject["tool.setuptools_scm"].set("local_scheme", '"node-and-date"')
+    pyproject["tool.setuptools_scm"].set("write_to", f'"{write_to_path}"')
+
+    # Force a blank line after [tool.setuptools_scm]
+    pyproject["tool.setuptools_scm"].add_after.space(1)
+
+    # --- Add Black settings ---
+    if not pyproject.has_section("tool.black"):
+        pyproject.add_section("tool.black")
+
+    pyproject["tool.black"].set("line-length", "120")
+    pyproject["tool.black"].set("target-version", '["py312"]')
+    pyproject["tool.black"].set("skip-string-normalization", "true")
+
+    # Force a blank line after [tool.black]
+    pyproject["tool.black"].add_after.space(1)
+
+    # --- Add Pytest settings ---
+    if not pyproject.has_section("tool.pytest.ini_options"):
+        pyproject.add_section("tool.pytest.ini_options")
+
+    pyproject["tool.pytest.ini_options"].set("log_cli", "true")
+    pyproject["tool.pytest.ini_options"].set("log_cli_level", '"INFO"')
+    pyproject["tool.pytest.ini_options"].set("log_cli_format", '"%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"')
+    pyproject["tool.pytest.ini_options"].set("log_cli_date_format", '"%d/%m/%Y %H:%M:%S"')
+
+    # Modify struct to apply changes before writing
+    struct[toml_path] = (str(pyproject), original_op)
+
+    return struct, opts
+
+from pyscaffold.structure import resolve_leaf, reify_content
+
+def modify_setup_py(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
+    """Modify setup.py to update use_scm_version setting."""
+
+    setup_path = "setup.py"
+
+    # Check if setup.py exists in struct
+    if setup_path not in struct:
+        return struct, opts  # Skip modification if setup.py is missing
+
+    # Resolve the leaf to get actual contents
+    contents, original_op = resolve_leaf(struct[setup_path])
+
+    # Ensure contents are resolved correctly using `reify_content`
+    contents = reify_content(contents, opts)
+
+    # Ensure we have a valid string
+    if not isinstance(contents, str):
+        raise TypeError(f"Expected string for {setup_path}, got {type(contents).__name__}")
+
+    # Replace the specific line
+    updated_contents = contents.replace(
+        'setup(use_scm_version={"version_scheme": "no-guess-dev"})',
+        'setup(use_scm_version=True)  # Removed explicit "no-guess-dev"'
+    )
+
+    # Modify struct to apply changes before writing
+    struct[setup_path] = (updated_contents, original_op)
+
+    return struct, opts
