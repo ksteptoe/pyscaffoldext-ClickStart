@@ -23,31 +23,15 @@ def setup_logging(loglevel):
     )
 
 
-def ${package}_api(n: int, loglevel: int ):
+def ${package}_api(loglevel: int ):
     """Wrapper allowing :func: $(package) to be called with string arguments in a CLI fashion
 
     Args:
-      n: int integer argument to calculate fibonacci
       loglevel: int
     """
     setup_logging(loglevel)
     _logger.info(f"Version: {__version__}")
-    print("The {}-th Fibonacci number is {}".format(n, ${package}(n)))
+    # Code Here
     _logger.info("Script ends here")
 
-
-def ${package}(n):
-    """${package} provides a Fibonacci example function
-
-    Args:
-      n (int): integer
-
-    Returns:
-      int: n-th Fibonacci number
-    """
-    assert n > 0
-    a, b = 1, 1
-    for _i in range(n - 1):
-        a, b = b, a + b
-    return a
 
