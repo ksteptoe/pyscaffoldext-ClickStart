@@ -1,0 +1,60 @@
+[build-system]
+# Use modern backend with versioning via setuptools_scm
+requires = ["setuptools>=69", "setuptools_scm>=8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "{{ project_name }}"
+dynamic = ["version"]
+description = "A project scaffolded using PyScaffold Clickstart"
+readme = "README.rst"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Your Name", email = "you@example.com" }]
+
+dependencies = [
+    "click>=8.1",
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.6",
+    "pre-commit>=3.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2",
+    "twine>=5",
+]
+
+[project.urls]
+Homepage = "https://example.com/{{ project_name }}"
+Repository = "https://github.com/example/{{ project_name }}"
+
+[project.scripts]
+{{ package_name }} = "{{ package_name }}.cli:cli"
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "dirty-tag"
+fallback_version = "0.0.1"
+write_to = "src/{{ package_name }}/_version.py"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+select = ["E", "F", "I", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --disable-warnings"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["{{ package_name }}"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

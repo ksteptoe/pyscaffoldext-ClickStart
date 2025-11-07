@@ -18,81 +18,94 @@ from pyscaffold.update import ConfigUpdater
 
 from . import templates as my_templates
 
+# --------------------------------------------------------------------------- #
+# Global constants
+# --------------------------------------------------------------------------- #
 NO_OVERWRITE = no_overwrite()
 
-REQUIREMENT_DEPENDENCIES = ('importlib-metadata; python_version>"3.9"',
-                            "click>=8.0",
-                            'pytest',
-                            'pytest-cov',
-                            )
-PYTHON_REQUIRES = "python_requires = >=3.9"
+# For backward compatibility only — safe to remove once setup.cfg is deprecated
+REQUIREMENT_DEPENDENCIES = (
+    "click>=8.1",
+    "pytest>=8",
+    "pytest-cov>=5",
+)
+
+PYTHON_REQUIRES = "python_requires = >=3.12"
+
+# --------------------------------------------------------------------------- #
+# Template & scaffold injection
+# --------------------------------------------------------------------------- #
+def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
+    """Add modern project scaffolding templates: Makefile, pyproject.toml, pre-commit config, CI."""
+    files = {
+        "Makefile": (get_template("Makefile", relative_to=my_templates), no_overwrite()),
+        "pyproject.toml": (get_template("pyproject.toml", relative_to=my_templates), no_overwrite()),
+        ".pre-commit-config.yaml": (get_template(".pre-commit-config.yaml", relative_to=my_templates), no_overwrite()),
+        ".github/workflows/ci.yml": (get_template(".github/workflows/ci.yml", relative_to=my_templates), no_overwrite()),
+    }
+
+    struct.pop("setup.cfg", None)
+
+    # Remove any unrendered *.template files
+    for key in list(struct.keys()):
+        if str(key).endswith(".template"):
+            struct.pop(key, None)
+
+    return merge(struct, files), opts
+
 
 
 class Clickstart(Extension):
-    """
-    This creates an extension that uses click as the CLI
-    """
+    """Main entry point for the Clickstart PyScaffold extension."""
 
     def activate(self, actions: List[Action]) -> List[Action]:
-        """Activates See :obj:`pyscaffold.extension.Extension.activate`."""
-
+        """Register custom actions to extend PyScaffold’s default behaviour."""
         actions = self.register(actions, add_files)
-        # ^ First an add extension and add template.
-
         actions = self.register(actions, add_clickstart_templates)
-
         actions = self.register(actions, reject_file)
-        # ^ Activate a reject to prevent default 'skeleton.py' being generated.
-
         return actions
 
 
 def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Adds the click_skeleton template in cli
-       Adds api_skeleton
-       __main__.py as a runner
-    See :obj:`pyscaffold.actions.Action`"""
+    """Add CLI, API, runner, and test scaffold templates."""
 
     cli_template = get_template("cli", relative_to=my_templates)
     api_template = get_template("api", relative_to=my_templates)
-    runner_template = get_template('runner', relative_to=my_templates)
-    conftest_template = get_template('conftest', relative_to=my_templates)
+    runner_template = get_template("runner", relative_to=my_templates)
+    conftest_template = get_template("conftest", relative_to=my_templates)
+
+    # Only include setup.cfg if it exists (for backward compatibility)
+    setup_cfg_entry = {}
+    if "setup.cfg" in struct:
+        setup_cfg_entry = {"setup.cfg": modify_setupcfg(struct["setup.cfg"], opts)}
+
     files: Structure = {
-        "src": {opts["package"]: {'cli.py': (cli_template, NO_OVERWRITE),
-                                  'api.py': (api_template, NO_OVERWRITE)}},
+        "src": {
+            opts["package"]: {
+                "cli.py": (cli_template, NO_OVERWRITE),
+                "api.py": (api_template, NO_OVERWRITE),
+            }
+        },
         "__main__.py": (runner_template, NO_OVERWRITE),
-        "setup.cfg": modify_setupcfg(struct["setup.cfg"], opts),
-        "tests": {'conftest.py': (conftest_template, NO_OVERWRITE)}
+        "tests": {"conftest.py": (conftest_template, NO_OVERWRITE)},
+        **setup_cfg_entry,
     }
 
     return merge(struct, files), opts
-
-
-def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    files = {
-        "Makefile": (get_template("Makefile", relative_to=my_templates), NO_OVERWRITE),
-        "pyproject.toml": (get_template("pyproject.toml", relative_to=my_templates), NO_OVERWRITE),
-    }
-    return merge(struct, files), opts
-
 
 
 def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Rejects the default skeleton template.
-    See :obj:`pyscaffold.actions.Action`"""
-
+    """Reject the default skeleton file from PyScaffold."""
     file = Path("src", opts["package"], "skeleton.py")
-
     return reject(struct, file), opts
 
 
+# --------------------------------------------------------------------------- #
+# setup.cfg modification (legacy mode only)
+# --------------------------------------------------------------------------- #
 def modify_setupcfg(definition: Leaf, opts: ScaffoldOpts) -> ResolvedLeaf:
-    """Modify setup.cfg to add install_requires and pytest settings before it is
-    written.
-    See :obj:`pyscaffold.operations`.
-    """
+    """Modify setup.cfg to inject dependencies and entry points."""
     contents, original_op = resolve_leaf(definition)
-
     if contents is None:
         raise ValueError("File contents for setup.cfg should not be None")
 
@@ -101,33 +114,28 @@ def modify_setupcfg(definition: Leaf, opts: ScaffoldOpts) -> ResolvedLeaf:
 
     modifiers = (add_install_requires, py_requires, add_entry_point)
     new_setupcfg = reduce(lambda acc, fn: fn(acc, opts), modifiers, setupcfg)
-
     return str(new_setupcfg), original_op
 
 
 def add_install_requires(setupcfg: ConfigUpdater, _opts) -> ConfigUpdater:
-    """Add [options.install_requires] requirements"""
+    """Add install_requires dependencies."""
     requires = setupcfg["options"]
     requires["install_requires"].set_values(REQUIREMENT_DEPENDENCIES)
     return setupcfg
 
 
 def py_requires(setupcfg: ConfigUpdater, _opts) -> ConfigUpdater:
-    """Replace
-    # python_requires = >=3.8
-        with
-    python_requires = >=3.9"""
+    """Ensure the correct Python version requirement."""
     (
         setupcfg["options"]["install_requires"]
-        .add_before.comment("# Minimum Python Version 3.9 required")
-        .option("python_requires", ">=3.9,<3.10")
+        .add_before.comment("# Minimum Python Version 3.12 required")
+        .option("python_requires", ">=3.12,<3.13")
     )
-
     return setupcfg
 
 
 def add_entry_point(setupcfg: ConfigUpdater, opts: ScaffoldOpts) -> ConfigUpdater:
-    """Adds the extension's entry_point to setup.cfg"""
+    """Adds the console entry point to setup.cfg."""
     entry_points_key = "options.entry_points"
 
     if not setupcfg.has_section(entry_points_key):
@@ -136,7 +144,6 @@ def add_entry_point(setupcfg: ConfigUpdater, opts: ScaffoldOpts) -> ConfigUpdate
     entry_points = setupcfg[entry_points_key]
     entry_points.insert_at(0).option("console_scripts")
     template = "{package} = {package}.cli:cli"
-    value = template.format(file_name="py", **opts)
+    value = template.format(**opts)
     entry_points["console_scripts"].set_values([value])
-
     return setupcfg
