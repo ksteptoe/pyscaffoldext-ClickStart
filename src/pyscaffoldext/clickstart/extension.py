@@ -39,6 +39,8 @@ class Clickstart(Extension):
         actions = self.register(actions, add_files)
         # ^ First an add extension and add template.
 
+        actions = self.register(actions, add_clickstart_templates)
+
         actions = self.register(actions, reject_file)
         # ^ Activate a reject to prevent default 'skeleton.py' being generated.
 
@@ -64,6 +66,15 @@ def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     }
 
     return merge(struct, files), opts
+
+
+def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
+    files = {
+        "Makefile": (get_template("Makefile", relative_to=my_templates), NO_OVERWRITE),
+        "pyproject.toml": (get_template("pyproject.toml", relative_to=my_templates), NO_OVERWRITE),
+    }
+    return merge(struct, files), opts
+
 
 
 def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
