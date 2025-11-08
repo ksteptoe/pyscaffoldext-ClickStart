@@ -21,23 +21,26 @@ STAMPS_DIR  := .stamps
 NO_CACHE   ?= 0
 
 # Pytest flags
-PYTEST        := $(PYTHON) -m pytest
-PYTEST_Q      := -q
-PYTEST_WARN   := --disable-warnings
-PYTEST_COV    := --cov={{ package_name }} --cov-report=xml --cov-fail-under=40
-PYTEST_XDIST  ?= -n auto
+PYTEST         := $(PYTHON) -m pytest
+PYTEST_Q       := -q
+PYTEST_WARN    := --disable-warnings
+PYTEST_COV     := --cov={{ package_name }} --cov-report=xml --cov-fail-under=40
+PYTEST_XDIST   ?= -n auto
 PYTEST_TIMEOUT ?= --timeout=60
 
 # Directories
-UNIT_DIR      := tests/unit
-CLI_DIR       := tests/cli
-E2E_DIR       := tests/e2e
+UNIT_DIR := tests/unit
+CLI_DIR  := tests/cli
+E2E_DIR  := tests/e2e
 
-.PHONY: help lint format test test-all build upload release-patch release-minor release-major clean run-cli \
-        version fetch-tags release-show clean-tests
+.PHONY: help bootstrap precommit lint format test test-all build upload \
+        version fetch-tags release-show release-patch release-minor release-major \
+        clean clean-tests run-cli
 
 help:
 	@echo "Common targets:"
+	@echo "  make bootstrap           - install .[dev]"
+	@echo "  make precommit           - install pre-commit hook"
 	@echo "  make lint                - run Ruff checks"
 	@echo "  make format              - auto-fix via Ruff"
 	@echo "  make test                - run cached unit tests"
@@ -51,6 +54,13 @@ help:
 	@echo "  make release-major       - tag v(X+1).0.0"
 	@echo "  make clean               - remove build artifacts"
 	@echo "  make run-cli             - run CLI entry point"
+
+bootstrap:
+	$(PYTHON) -m pip install -U pip setuptools wheel
+	$(PYTHON) -m pip install -e ".[dev]"
+
+precommit:
+	pre-commit install
 
 # -----------------------------------------------------------------------------#
 # Linting / Formatting
