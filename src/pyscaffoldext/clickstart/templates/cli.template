@@ -18,15 +18,14 @@ _logger = logging.getLogger(__name__)
 
 @click.command()
 @click.version_option(__version__, '--version')
-@click.argument('n', type=int)
 @click.option('-v', '--verbose', 'loglevel', type=int, flag_value=logging.INFO)
 @click.option('-vv', '--very_verbose', 'loglevel', type=int, flag_value=logging.DEBUG)
-def cli(n, loglevel):
+def cli(loglevel):
     """Calls :func:`main` passing the CLI arguments extracted from click
 
     This function can be used as entry point to create console scripts with setuptools.
     """
-    ${package}_api(n, loglevel)
+    ${package}_api(loglevel)
 
 
 if __name__ == "__main__":
@@ -38,6 +37,6 @@ if __name__ == "__main__":
     # After installing your project with pip, users can also run this Python
     # modules as scripts via the ``-m`` flag, as defined in PEP 338::
     #
-    #     python -m ${package}.${package} 42
+    #     python -m ${package}.${package}
     #
     cli()
