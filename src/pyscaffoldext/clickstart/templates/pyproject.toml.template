@@ -12,16 +12,20 @@ requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Your Name", email = "you@example.com" }]
 
+# Runtime-only deps
 dependencies = [
     "click>=8.1",
-    "pytest>=8",
-    "pytest-cov>=5",
-    "ruff>=0.6",
-    "pre-commit>=3.7",
 ]
 
 [project.optional-dependencies]
+# Everything needed for local dev, tests, linting & releases
 dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "pytest-xdist>=3.6",
+    "pytest-timeout>=2.3",
+    "ruff>=0.6",
+    "pre-commit>=3.7",
     "build>=1.2",
     "twine>=5",
 ]
