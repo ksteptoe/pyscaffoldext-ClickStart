@@ -33,7 +33,8 @@ UNIT_DIR      := tests/unit
 CLI_DIR       := tests/cli
 E2E_DIR       := tests/e2e
 
-.PHONY: help lint format test test-all build upload release-patch release-minor release-major clean run-cli
+.PHONY: help lint format test test-all build upload release-patch release-minor release-major clean run-cli \
+        version fetch-tags release-show clean-tests
 
 help:
 	@echo "Common targets:"
@@ -43,6 +44,8 @@ help:
 	@echo "  make test-all            - run all tests"
 	@echo "  make build               - build wheel+sdist"
 	@echo "  make upload              - upload to PyPI (via Twine)"
+	@echo "  make version             - print setuptools_scm inferred version"
+	@echo "  make release-show        - show scm ver, installed ver, last Git tag"
 	@echo "  make release-patch       - tag vX.Y.(Z+1)"
 	@echo "  make release-minor       - tag vX.(Y+1).0"
 	@echo "  make release-major       - tag v(X+1).0.0"
@@ -106,7 +109,10 @@ upload: build
 	twine upload dist/*
 
 # -----------------------------------------------------------------------------#
-# Git Tag Versioning (setuptools_scm aware)
+# Version & Release helpers (setuptools_scm + Git tags)
+version:
+	@$(PYTHON) -m setuptools_scm || true
+
 fetch-tags:
 	git fetch --tags --force --prune 2>/dev/null || true
 
@@ -114,6 +120,12 @@ LAST_TAG := $(shell git describe --tags --abbrev=0 --match "v[0-9]*.[0-9]*.[0-9]
 MAJOR    := $(shell echo "$(LAST_TAG)" | sed -E 's/^v([0-9]+)\..*/\1/')
 MINOR    := $(shell echo "$(LAST_TAG)" | sed -E 's/^v[0-9]+\.([0-9]+)\..*/\1/')
 PATCH    := $(shell echo "$(LAST_TAG)" | sed -E 's/^v[0-9]+\.[0-9]+\.([0-9]+)/\1/')
+
+release-show: fetch-tags
+	@echo "python exe:"; $(PYTHON) -c "import sys; print(sys.executable)"
+	@echo "setuptools_scm version:"; $(PYTHON) -m setuptools_scm || echo "(unavailable)"
+	@echo "installed dist version:"; $(PYTHON) -c "import importlib.metadata as m; print(m.version('{{ package_name }}'))" || echo "(package not installed)"
+	@echo "Last Git tag: $(LAST_TAG)"
 
 release-patch: fetch-tags
 	NEW=v$(MAJOR).$(MINOR).$$(( $(PATCH) + 1 ))
@@ -142,4 +154,3 @@ clean:
 	rm -rf build dist .eggs *.egg-info .coverage htmlcov .pytest_cache
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 	rm -rf $(STAMPS_DIR)
-
