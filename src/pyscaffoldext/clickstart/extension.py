@@ -39,32 +39,75 @@ PYTHON_REQUIRES = "python_requires = >=3.12"
 def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     """Add rendered project templates like Makefile, pyproject.toml, and pre-commit config."""
 
+    from pyscaffold.templates import get_template
     from pyscaffold.structure import reify_content
 
-    # --- Load templates ---------------------------------------------------
-    makefile_tmpl = get_template("Makefile", relative_to=my_templates)
-    pyproject_tmpl = get_template("pyproject.toml", relative_to=my_templates)
-    precommit_tmpl = get_template(".pre-commit-config.yaml", relative_to=my_templates)
+    def materialize(tpl):
+        """Return template as plain text.
+        - PyScaffold templates are callables: call with opts
+        - If reify_content works, use it
+        - Otherwise, fallback to str()
+        """
+        # 1) Try PyScaffold renderer first
+        try:
+            txt = reify_content(tpl, opts)
+            if isinstance(txt, str):
+                return txt
+        except Exception:
+            pass
 
-    # --- Render templates with project variables -------------------------
-    makefile = reify_content(makefile_tmpl, opts)
-    pyproject = reify_content(pyproject_tmpl, opts)
-    precommit = reify_content(precommit_tmpl, opts)
+        # 2) If it's a callable template, call with opts
+        try:
+            if callable(tpl):
+                return tpl(opts)
+        except Exception:
+            pass
 
-    # --- Register rendered files into structure --------------------------
+        # 3) Last resort
+        return str(tpl)
+
+    def substitute_vars(text: str) -> str:
+        """Minimal substitution for brace placeholders."""
+        project = (
+            opts.get("project")
+            or opts.get("project_name")
+            or opts.get("name")
+            or "project"
+        )
+        package = (
+            opts.get("package")
+            or opts.get("package_name")
+            or project.replace("-", "_")
+        )
+        return (
+            text
+            .replace("{{ project_name }}", project)
+            .replace("{{project_name}}", project)
+            .replace("{{ package_name }}", package)
+            .replace("{{package_name}}", package)
+            .replace("{{package}}", package)
+        )
+
+    # --- Load templates
+    makefile_tpl  = get_template("Makefile", relative_to=my_templates)
+    pyproject_tpl = get_template("pyproject.toml", relative_to=my_templates)
+    precommit_tpl = get_template(".pre-commit-config.yaml", relative_to=my_templates)
+
+    # --- Render to text + substitute variables
+    makefile  = substitute_vars(materialize(makefile_tpl))
+    pyproject = substitute_vars(materialize(pyproject_tpl))
+    precommit = substitute_vars(materialize(precommit_tpl))
+
     files = {
-        "Makefile": (makefile, no_overwrite()),
-        "pyproject.toml": (pyproject, no_overwrite()),
-        ".pre-commit-config.yaml": (precommit, no_overwrite()),
+        "Makefile": (makefile, NO_OVERWRITE),
+        "pyproject.toml": (pyproject, NO_OVERWRITE),
+        ".pre-commit-config.yaml": (precommit, NO_OVERWRITE),
     }
 
-    # Remove legacy setup.cfg if PyScaffold created one
+    # We’ve moved away from setup.cfg
     struct.pop("setup.cfg", None)
 
     return merge(struct, files), opts
-
-
-
 
 
 class Clickstart(Extension):
