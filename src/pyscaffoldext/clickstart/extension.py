@@ -21,6 +21,7 @@ from . import templates as my_templates
 # --------------------------------------------------------------------------- #
 # Global constants
 # --------------------------------------------------------------------------- #
+
 NO_OVERWRITE = no_overwrite()
 
 # For backward compatibility only — safe to remove once setup.cfg is deprecated
