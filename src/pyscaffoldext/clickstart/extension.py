@@ -37,22 +37,33 @@ PYTHON_REQUIRES = "python_requires = >=3.12"
 # Template & scaffold injection
 # --------------------------------------------------------------------------- #
 def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Add modern project scaffolding templates: Makefile, pyproject.toml, pre-commit config, CI."""
+    """Add rendered project templates like Makefile, pyproject.toml, and pre-commit config."""
+
+    from pyscaffold.structure import reify_content
+
+    # --- Load templates ---------------------------------------------------
+    makefile_tmpl = get_template("Makefile", relative_to=my_templates)
+    pyproject_tmpl = get_template("pyproject.toml", relative_to=my_templates)
+    precommit_tmpl = get_template(".pre-commit-config.yaml", relative_to=my_templates)
+
+    # --- Render templates with project variables -------------------------
+    makefile = reify_content(makefile_tmpl, opts)
+    pyproject = reify_content(pyproject_tmpl, opts)
+    precommit = reify_content(precommit_tmpl, opts)
+
+    # --- Register rendered files into structure --------------------------
     files = {
-        "Makefile": (get_template("Makefile", relative_to=my_templates), no_overwrite()),
-        "pyproject.toml": (get_template("pyproject.toml", relative_to=my_templates), no_overwrite()),
-        ".pre-commit-config.yaml": (get_template(".pre-commit-config.yaml", relative_to=my_templates), no_overwrite()),
-        ".github/workflows/ci.yml": (get_template(".github/workflows/ci.yml", relative_to=my_templates), no_overwrite()),
+        "Makefile": (makefile, no_overwrite()),
+        "pyproject.toml": (pyproject, no_overwrite()),
+        ".pre-commit-config.yaml": (precommit, no_overwrite()),
     }
 
+    # Remove legacy setup.cfg if PyScaffold created one
     struct.pop("setup.cfg", None)
 
-    # Remove any unrendered *.template files
-    for key in list(struct.keys()):
-        if str(key).endswith(".template"):
-            struct.pop(key, None)
-
     return merge(struct, files), opts
+
+
 
 
 
