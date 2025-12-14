@@ -14,7 +14,6 @@ from pyscaffold.structure import (
     reify_content,
     reject,
     resolve_leaf,
-    resolve_leaf,
 )
 from pyscaffold.templates import get_template
 from pyscaffold.update import ConfigUpdater
@@ -113,22 +112,24 @@ def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionPar
 
     def render_template(name: str) -> str:
         tpl = get_template(name, relative_to=my_templates)
-        # Let PyScaffold do its usual rendering first (for $vars, if any),
-        # then apply our brace-var substitution for your current templates.
         txt = reify_content(tpl, opts)
         return _substitute_brace_vars(txt, opts)
+
+    # If PyScaffold's built-in --pre-commit already added a default config,
+    # remove it so ClickStart can enforce Ruff-only.
+    struct.pop(".pre-commit-config.yaml", None)
 
     files: Structure = {
         "Makefile": (render_template("Makefile"), NO_OVERWRITE),
         "pyproject.toml": (render_template("pyproject.toml"), NO_OVERWRITE),
-        ".pre-commit-config.yaml": (render_template(".pre-commit-config.yaml"), NO_OVERWRITE),
+        ".pre-commit-config.yaml": (
+            render_template(".pre-commit-config.yaml"),
+            NO_OVERWRITE,
+        ),
     }
 
-    # Default to pyproject-first: remove setup.cfg if present.
     struct.pop("setup.cfg", None)
-
     return merge(struct, files), opts
-
 
 def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     """Reject the default skeleton file from PyScaffold."""

@@ -20,6 +20,7 @@ repos:
       - id: trailing-whitespace
       - id: check-merge-conflict
 
+
   # If you want Black as well, uncomment this block and keep its rev pinned
   # - repo: https://github.com/psf/black
   #   rev: 24.10.0     # example pinned release
