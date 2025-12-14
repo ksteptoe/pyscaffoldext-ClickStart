@@ -118,6 +118,7 @@ def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionPar
     # If PyScaffold's built-in --pre-commit already added a default config,
     # remove it so ClickStart can enforce Ruff-only.
     struct.pop(".pre-commit-config.yaml", None)
+    struct.pop(".isort.cfg", None)
 
     files: Structure = {
         "Makefile": (render_template("Makefile"), NO_OVERWRITE),
@@ -140,21 +141,25 @@ def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
 class Clickstart(Extension):
     """Main entry point for the Clickstart PyScaffold extension."""
 
+    # Name is optional (entry-point name usually defines the flag),
+    # but harmless and can make things clearer.
+    name = "clickstart"
+
+    # This is the critical one for the error you're seeing:
+    help_text = "Generate a Click-based CLI project scaffold (ClickStart templates)."
+
+    # Some PyScaffold versions also look at description:
+    description = help_text
+
     def activate(self, actions: List[Action]) -> List[Action]:
-        # Deterministic ordering:
-        actions = self.register(actions, add_files)
+        actions = self.register(actions, add_files, after="define_structure")
 
-        actions = self.register(
-            actions,
-            add_clickstart_templates,
-            after="pyscaffoldext.clickstart.extension:add_files",
-        )
+        # Run late, so we override anything other extensions added (incl. pre_commit)
+        actions = self.register(actions, add_clickstart_templates, before="create_structure")
 
-        actions = self.register(
-            actions,
-            reject_file,
-            after="pyscaffoldext.clickstart.extension:add_clickstart_templates",
-        )
+        # Either fold reject_file into add_clickstart_templates (simplest),
+        # or also register it late:
+        actions = self.register(actions, reject_file, before="create_structure")
 
         return actions
 
