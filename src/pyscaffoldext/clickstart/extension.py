@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from functools import reduce
+from importlib.metadata import PackageNotFoundError, packages_distributions
+from importlib.metadata import version as dist_version
 from pathlib import Path
 from typing import List
 
@@ -137,6 +139,22 @@ def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     file = Path("src", opts["package"], "skeleton.py")
     return reject(struct, file), opts
 
+def _clickstart_version() -> str:
+    # Best: read the installed distribution version (works for editable installs)
+    try:
+        # Find which distribution provides the top-level package "pyscaffoldext"
+        dist_names = packages_distributions().get("pyscaffoldext", [])
+        if dist_names:
+            return dist_version(dist_names[0])
+    except Exception:
+        pass
+
+    # Fallback: try your generated _version.py (setuptools-scm style)
+    try:
+        from ._version import version as v  # type: ignore
+        return v
+    except Exception:
+        return "unknown"
 
 class Clickstart(Extension):
     """Main entry point for the Clickstart PyScaffold extension."""
@@ -150,6 +168,14 @@ class Clickstart(Extension):
 
     # Some PyScaffold versions also look at description:
     description = help_text
+
+    def augment_cli(self, parser):
+        super().augment_cli(parser)
+        parser.add_argument(
+            "--clickstart-version",
+            action="version",
+            version=f"ClickStart {_clickstart_version()}",
+        )
 
     def activate(self, actions: List[Action]) -> List[Action]:
         actions = self.register(actions, add_files, after="define_structure")
