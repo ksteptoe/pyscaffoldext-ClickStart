@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "{{ project_name }}"
 dynamic = ["version"]
-description = "A project scaffolded using PyScaffold Clickstart"
+description = "Project scaffolded with PyScaffold Clickstart."
 readme = "README.rst"
 requires-python = ">=3.12"
 license = { text = "MIT" }
@@ -15,10 +15,11 @@ authors = [{ name = "Your Name", email = "you@example.com" }]
 # Runtime-only deps
 dependencies = [
     "click>=8.1",
+    "pywin32>=306",  # remove or change if not needed for other projects
 ]
 
 [project.optional-dependencies]
-# Everything needed for local dev, tests, linting & releases
+# Dev extras: tests, coverage, linting, releases
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
@@ -35,7 +36,8 @@ Homepage = "https://example.com/{{ project_name }}"
 Repository = "https://github.com/example/{{ project_name }}"
 
 [project.scripts]
-{{ package_name }} = "{{ package_name }}.cli:cli"
+# For Clickstart-style CLIs; adapt or remove if the project has no CLI
+{{ project_name }} = "{{ package_name }}.cli:cli"
 
 [tool.setuptools_scm]
 version_scheme = "post-release"
@@ -44,14 +46,14 @@ fallback_version = "0.0.1"
 write_to = "src/{{ package_name }}/_version.py"
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py312"
 select = ["E", "F", "I", "B"]
-ignore = ["E501"]
+# No E501 ignore; Ruff enforces the 120-char limit.
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-ra -q --disable-warnings"
+addopts = "-ra --disable-warnings"
 testpaths = ["tests"]
 
 [tool.coverage.run]
@@ -62,3 +64,5 @@ omit = ["tests/*"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+
+
