@@ -1,6 +1,5 @@
 [build-system]
-# Use modern backend with versioning via setuptools_scm
-requires = ["setuptools>=69", "setuptools_scm>=8.0", "wheel"]
+requires = ["setuptools>=80", "wheel", "setuptools-scm[toml]>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -39,7 +38,7 @@ Repository = "https://github.com/example/{{ project_name }}"
 {{ project_name }} = "{{ package_name }}.cli:cli"
 
 [tool.setuptools_scm]
-version_scheme = "post-release"
+version_scheme = "guess-next-dev"
 local_scheme = "dirty-tag"
 fallback_version = "0.0.1"
 write_to = "src/{{ package_name }}/_version.py"
