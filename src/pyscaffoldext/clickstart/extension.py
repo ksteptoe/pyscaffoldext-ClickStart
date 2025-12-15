@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import reduce
-from importlib.metadata import PackageNotFoundError, packages_distributions
+from importlib.metadata import packages_distributions
 from importlib.metadata import version as dist_version
 from pathlib import Path
 from typing import List

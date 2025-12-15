@@ -1,11 +1,8 @@
 from pathlib import Path
 
 from pyscaffold import cli
-from pyscaffold.file_system import chdir
 
 from pyscaffoldext.clickstart.extension import Clickstart
-
-from .helpers import run_common_tasks
 
 EXT_FLAGS = [Clickstart().flag]
 
