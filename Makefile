@@ -24,7 +24,7 @@ ENV_STAMP := $(VENV)/.installed
 $(ENV_STAMP): $(CONF_FILES) | venv
 	@echo "Installing project dependencies (editable)..."
 	"$(PY)" -m pip install -U pip setuptools wheel
-	"$(PY)" -m pip install -e ".[dev]"
+	"$(PY)" -m pip install -e "$(CURDIR)[dev]"
 	@echo "installed" > "$(ENV_STAMP)"
 
 
@@ -95,6 +95,9 @@ $(VENV)/pyvenv.cfg:
 	$(PYTHON_SYS) -m venv $(VENV)
 
 venv: $(VENV)/pyvenv.cfg
+
+# Windows-friendly absolute path (Git Bash): e.g. C:/Users/kevin/...
+PROJ_DIR_WIN := $(shell pwd -W | sed 's/\\/\//g')
 
 bootstrap: $(ENV_STAMP)
 	@echo "Environment ready."
