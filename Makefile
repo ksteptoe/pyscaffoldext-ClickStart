@@ -35,7 +35,7 @@ PYTHON_SYS := $(shell command -v python >/dev/null 2>&1 && echo python || echo p
 PY = $(if $(wildcard $(VENV)/Scripts/python.exe),$(VENV)/Scripts/python.exe,$(VENV)/bin/python)
 
 # Main code package (templated)
-PKG        := pyscaffoldext-ClickStart
+PKG        := pyscaffoldext
 CODE_DIRS  := src/$(PKG)
 STAMPS_DIR := .stamps
 UNIT_STAMP  := $(STAMPS_DIR)/unit.ok
