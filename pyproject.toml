@@ -1,9 +1,75 @@
 [build-system]
-# AVOID CHANGING REQUIRES: IT WILL BE UPDATED BY PYSCAFFOLD!
-requires = ["setuptools>=46.1.0", "setuptools_scm[toml]>=7", "wheel"]
+requires = ["setuptools>=80", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyscaffoldext-ClickStart"
+dynamic = ["version"]
+description = "Project scaffolded with PyScaffold Clickstart."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Your Name", email = "you@example.com" }]
+
+# Runtime-only deps
+dependencies = [
+    "pyscaffold>=4",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+# Dev extras: tests, coverage, linting, releases
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "pytest-xdist>=3.6",
+    "pytest-timeout>=2.3",
+    "ruff>=0.6",
+    "pre-commit>=3.7",
+    "build>=1.2",
+    "twine>=5",
+]
+
+[project.urls]
+# Homepage = ""
+# Repository = "git@github.com:ksteptoe/pyscaffoldext-ClickStart.git"
+
+[project.entry-points."pyscaffold.cli"]
+clickstart = "pyscaffoldext.clickstart.extension:Clickstart"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools_scm]
 version_scheme = "guess-next-dev"
-local_scheme = "node-and-date"
+local_scheme = "dirty-tag"
+fallback_version = "0.0.1"
 write_to = "src/pyscaffoldext/clickstart/_version.py"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+# No E501 ignore; Ruff enforces the 120-char limit.
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra --disable-warnings"
+testpaths = ["tests"]
+markers = [
+  "integration: filesystem/external-tool tests"
+]
+
+[tool.coverage.run]
+branch = true
+source = ["pyscaffoldext"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+

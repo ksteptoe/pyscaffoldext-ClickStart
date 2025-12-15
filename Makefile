@@ -24,7 +24,7 @@ ENV_STAMP := $(VENV)/.installed
 $(ENV_STAMP): $(CONF_FILES) | venv
 	@echo "Installing project dependencies (editable)..."
 	"$(PY)" -m pip install -U pip setuptools wheel
-	"$(PY)" -m pip install -e ".[dev]"
+	"$(PY)" -m pip install -e "$(CURDIR)[dev]"
 	@echo "installed" > "$(ENV_STAMP)"
 
 
@@ -35,7 +35,7 @@ PYTHON_SYS := $(shell command -v python >/dev/null 2>&1 && echo python || echo p
 PY = $(if $(wildcard $(VENV)/Scripts/python.exe),$(VENV)/Scripts/python.exe,$(VENV)/bin/python)
 
 # Main code package (templated)
-PKG        := pyscaffoldext-ClickStart
+PKG        := pyscaffoldext
 CODE_DIRS  := src/$(PKG)
 STAMPS_DIR := .stamps
 UNIT_STAMP  := $(STAMPS_DIR)/unit.ok
@@ -95,6 +95,9 @@ $(VENV)/pyvenv.cfg:
 	$(PYTHON_SYS) -m venv $(VENV)
 
 venv: $(VENV)/pyvenv.cfg
+
+# Windows-friendly absolute path (Git Bash): e.g. C:/Users/kevin/...
+PROJ_DIR_WIN := $(shell pwd -W | sed 's/\\/\//g')
 
 bootstrap: $(ENV_STAMP)
 	@echo "Environment ready."
