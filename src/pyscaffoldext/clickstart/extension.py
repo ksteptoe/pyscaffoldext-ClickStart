@@ -188,9 +188,14 @@ def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionPar
     return merge(struct, files), opts
 
 def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Reject the default skeleton file from PyScaffold."""
-    file = Path("src", opts["package"], "skeleton.py")
-    return reject(struct, file), opts
+    """Reject default skeleton/legacy packaging files from PyScaffold."""
+    pkg = opts["package"]
+
+    struct = reject(struct, Path("src", pkg, "skeleton.py"))
+    struct = reject(struct, Path("setup.py"))
+    struct = reject(struct, Path("setup.cfg"))
+
+    return struct, opts
 
 def _clickstart_version() -> str:
     # Best: read the installed distribution version (works for editable installs)
