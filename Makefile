@@ -254,9 +254,8 @@ changelog-md: fetch-tags
 release-show: fetch-tags $(ENV_STAMP)
 	@echo "python exe:"; "$(PY)" -c "import sys; print(sys.executable)"
 	@echo "setuptools_scm version:"; "$(PY)" -m setuptools_scm || echo "(unavailable)"
-	@echo "installed dist version:"; "$(PY)" -c "import importlib.metadata as m; print(m.version('$(PKG)'))" || echo "(package not installed)"
+	@echo "installed dist version:"; "$(PY)" -c "import importlib.metadata as m; print(m.version('pyscaffoldext-ClickStart'))" || echo "(package not installed)"
 	@echo "Last Git tag: $(LAST_TAG)"
-
 
 check-clean:
 	@if ! git diff --quiet || ! git diff --cached --quiet; then \
