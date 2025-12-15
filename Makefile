@@ -97,7 +97,7 @@ $(VENV)/pyvenv.cfg:
 venv: $(VENV)/pyvenv.cfg
 
 # Windows-friendly absolute path (Git Bash): e.g. C:/Users/kevin/...
-PROJ_DIR_WIN := $(shell pwd -W | sed 's/\\/\//g')
+PROJ_DIR_WIN := $(shell pwd -W)
 
 bootstrap: $(ENV_STAMP)
 	@echo "Environment ready."
