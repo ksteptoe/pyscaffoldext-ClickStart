@@ -15,7 +15,6 @@ authors = [{ name = "Your Name", email = "you@example.com" }]
 # Runtime-only deps
 dependencies = [
     "click>=8.1",
-    "pywin32>=306",  # remove or change if not needed for other projects
 ]
 
 [project.optional-dependencies]
@@ -55,6 +54,9 @@ select = ["E", "F", "I", "B"]
 minversion = "8.0"
 addopts = "-ra --disable-warnings"
 testpaths = ["tests"]
+markers = [
+  "integration: filesystem/external-tool tests"
+]
 
 [tool.coverage.run]
 branch = true

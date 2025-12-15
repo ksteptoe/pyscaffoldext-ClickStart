@@ -73,6 +73,47 @@ def modify_gitignore(definition: Leaf, opts: ScaffoldOpts) -> ResolvedLeaf:
 
     return txt, original_op
 
+def _tests_readme(_opts: ScaffoldOpts) -> str:
+    return """# Tests
+
+This project separates fast unit tests from slower integration tests.
+
+- `tests/unit/`: fast tests (imports, pure logic)
+- `tests/integration/`: filesystem / external tool checks
+
+Run:
+- `pytest`
+- `pytest -m "not integration"`
+- `pytest -m integration`
+"""
+
+
+def _unit_test_import(opts: ScaffoldOpts) -> str:
+    pkg = opts["package"]
+    return f'''"""Unit smoke tests (fast)."""
+
+import importlib
+
+
+def test_package_importable():
+    importlib.import_module("{pkg}")
+'''
+
+
+def _integration_test_layout(opts: ScaffoldOpts) -> str:
+    pkg = opts["package"]
+    return f'''"""Integration-ish smoke tests (filesystem/layout)."""
+
+from pathlib import Path
+import pytest
+
+
+@pytest.mark.integration
+def test_project_layout_exists():
+    root = Path(__file__).resolve().parents[2]
+    assert (root / "pyproject.toml").exists()
+    assert (root / "src" / "{pkg}").exists()
+'''
 
 def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     """Add CLI, API, runner, tests, and .gitignore augmentation."""
@@ -80,10 +121,13 @@ def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     cli_template = get_template("cli", relative_to=my_templates)
     api_template = get_template("api", relative_to=my_templates)
     runner_template = get_template("runner", relative_to=my_templates)
-    conftest_template = get_template("conftest", relative_to=my_templates)
 
     project = opts.get("project") or "project"
     package = opts.get("package") or project.replace("-", "_")
+
+    # Remove PyScaffold's default tests (skeleton-style)
+    struct = reject(struct, Path("tests", "conftest.py"))
+    struct = reject(struct, Path("tests", "test_skeleton.py"))
 
     # .gitignore: modify if present; otherwise create it.
     if ".gitignore" in struct:
@@ -103,10 +147,19 @@ def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
                 "__main__.py": (runner_template, NO_OVERWRITE),
             }
         },
-        "tests": {"conftest.py": (conftest_template, NO_OVERWRITE)},
+        "tests": {
+            "README.md": (_tests_readme, NO_OVERWRITE),
+            "unit": {
+                "test_import.py": (_unit_test_import, NO_OVERWRITE),
+            },
+            "integration": {
+                "test_layout.py": (_integration_test_layout, NO_OVERWRITE),
+            },
+        },
     }
 
     return merge(struct, files), opts
+
 
 
 def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
