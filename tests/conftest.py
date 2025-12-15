@@ -21,5 +21,4 @@ def tmpfolder(tmp_path: Path):
     try:
         yield workdir
     finally:
-       os.chdir(old_path)
-
+        os.chdir(old_path)

@@ -37,7 +37,7 @@ def rmpath(path):
         return
     except Exception:
         msg = f"rmpath: Impossible to remove {path}, probably an OS issue...\n\n"
-        warn(msg + traceback.format_exc())
+        warn(msg + traceback.format_exc(), stacklevel=2)
 
 
 def set_writable(func, path, _exc_info):
