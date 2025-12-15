@@ -43,12 +43,13 @@ local_scheme = "dirty-tag"
 fallback_version = "0.0.0"
 write_to = "src/{{ package_name }}/_version.py"
 
-
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "B"]
-# No E501 ignore; Ruff enforces the 120-char limit.
+
 
 [tool.pytest.ini_options]
 minversion = "8.0"
