@@ -44,7 +44,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools_scm]
-version_scheme = "post-release"
+version_scheme = "guess-next-dev"
 local_scheme = "dirty-tag"
 fallback_version = "0.0.1"
 write_to = "src/pyscaffoldext/clickstart/_version.py"
