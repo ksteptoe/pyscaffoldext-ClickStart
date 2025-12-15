@@ -53,3 +53,4 @@ MANIFEST
 .conda*/
 venv/*
 /src/pyscaffoldext/clickstart/_version.py
+.stamps/
