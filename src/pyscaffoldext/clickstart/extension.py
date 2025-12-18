@@ -42,8 +42,12 @@ def _substitute_brace_vars(text: str, opts: ScaffoldOpts) -> str:
     return (
         text.replace("{{ project_name }}", project)
         .replace("{{project_name}}", project)
+        .replace("{{ ProjectName }}", project)
+        .replace("{{ProjectName}}", project)
         .replace("{{ package_name }}", package)
         .replace("{{package_name}}", package)
+        .replace("{{ PackageName }}", package)
+        .replace("{{PackageName}}", package)
         .replace("{{package}}", package)
     )
 
