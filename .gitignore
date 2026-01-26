@@ -54,3 +54,4 @@ MANIFEST
 venv/*
 /src/pyscaffoldext/clickstart/_version.py
 .stamps/
+.claude/
