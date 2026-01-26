@@ -1,0 +1,37 @@
+# ${name}
+
+[![PyPI-Server](https://img.shields.io/pypi/v/${name}.svg)](https://pypi.org/project/${name}/)
+[![Project generated with PyScaffold](https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold)](https://pyscaffold.org/)
+
+> ${description}
+
+A longer description of your project goes here...
+
+## Installation
+
+```bash
+pip install ${name}
+```
+
+## Usage
+
+```bash
+${package} --help
+```
+
+## Development
+
+```bash
+git clone <repository-url>
+cd ${name}
+make dev      # Install in development mode with all dependencies
+make test     # Run tests
+make lint     # Run linter
+make format   # Format code
+make docs     # Build documentation
+```
+
+## Note
+
+This project has been set up using [PyScaffold](https://pyscaffold.org/) ${version}
+with the [ClickStart](https://github.com/ksteptoe/pyscaffoldext-ClickStart) extension.

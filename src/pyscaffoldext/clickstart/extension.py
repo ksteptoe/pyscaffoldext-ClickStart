@@ -184,6 +184,53 @@ def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionPar
     return merge(struct, files), opts
 
 
+def add_markdown_docs(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
+    """Replace PyScaffold's RST documentation with Markdown equivalents.
+
+    Uses MyST-Parser for Sphinx integration, providing modern Markdown-based
+    documentation that is easier to write and maintain.
+    """
+
+    def render_template(name: str) -> str:
+        tpl = get_template(name, relative_to=my_templates)
+        txt = reify_content(tpl, opts)
+        return _substitute_brace_vars(txt, opts)
+
+    # Reject PyScaffold's default RST documentation files
+    struct = reject(struct, Path("README.rst"))
+    struct = reject(struct, Path("AUTHORS.rst"))
+    struct = reject(struct, Path("CHANGELOG.rst"))
+    struct = reject(struct, Path("CONTRIBUTING.rst"))
+    struct = reject(struct, Path("docs", "index.rst"))
+    struct = reject(struct, Path("docs", "readme.rst"))
+    struct = reject(struct, Path("docs", "authors.rst"))
+    struct = reject(struct, Path("docs", "changelog.rst"))
+    struct = reject(struct, Path("docs", "contributing.rst"))
+    struct = reject(struct, Path("docs", "license.rst"))
+    struct = reject(struct, Path("docs", "conf.py"))
+
+    # Add Markdown documentation files
+    files: Structure = {
+        "README.md": (render_template("README.md"), NO_OVERWRITE),
+        "AUTHORS.md": (render_template("AUTHORS.md"), NO_OVERWRITE),
+        "CHANGELOG.md": (render_template("CHANGELOG.md"), NO_OVERWRITE),
+        "CONTRIBUTING.md": (render_template("CONTRIBUTING.md"), NO_OVERWRITE),
+        ".readthedocs.yml": (render_template(".readthedocs.yml"), NO_OVERWRITE),
+        "docs": {
+            "index.md": (render_template("docs/index.md"), NO_OVERWRITE),
+            "readme.md": (render_template("docs/readme.md"), NO_OVERWRITE),
+            "authors.md": (render_template("docs/authors.md"), NO_OVERWRITE),
+            "changelog.md": (render_template("docs/changelog.md"), NO_OVERWRITE),
+            "contributing.md": (render_template("docs/contributing.md"), NO_OVERWRITE),
+            "license.md": (render_template("docs/license.md"), NO_OVERWRITE),
+            "conf.py": (render_template("docs/conf.py"), NO_OVERWRITE),
+            "requirements.txt": (render_template("docs/requirements.txt"), NO_OVERWRITE),
+        },
+    }
+
+    return merge(struct, files), opts
+
+
 def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     """Reject default skeleton/legacy packaging files from PyScaffold."""
     pkg = opts["package"]
@@ -240,6 +287,9 @@ class Clickstart(Extension):
 
         # Run late, so we override anything other extensions added (incl. pre_commit)
         actions = self.register(actions, add_clickstart_templates, before="create_structure")
+
+        # Add Markdown documentation (replaces PyScaffold's RST docs)
+        actions = self.register(actions, add_markdown_docs, before="create_structure")
 
         # Either fold reject_file into add_clickstart_templates (simplest),
         # or also register it late:
