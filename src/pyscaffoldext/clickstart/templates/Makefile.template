@@ -218,10 +218,10 @@ ifeq ($(LAST_TAG),)
 LAST_TAG := v0.0.0
 endif
 
-# Robust parsing (avoid sed portability issues on Git Bash/Windows)
-MAJOR := $(shell sh -lc 't="$(LAST_TAG)"; t="$${t#v}"; echo "$${t%%.*}"')
-MINOR := $(shell sh -lc 't="$(LAST_TAG)"; t="$${t#v}"; t="$${t#*.}"; echo "$${t%%.*}"')
-PATCH := $(shell sh -lc 't="$(LAST_TAG)"; t="$${t#v}"; t="$${t#*.*.}"; echo "$${t%%[^0-9]*}"')
+# Robust parsing using sed/cut for cross-platform compatibility
+MAJOR := $(shell echo "$(LAST_TAG)" | sed 's/^v//' | cut -d. -f1)
+MINOR := $(shell echo "$(LAST_TAG)" | sed 's/^v//' | cut -d. -f2)
+PATCH := $(shell echo "$(LAST_TAG)" | sed 's/^v//' | cut -d. -f3)
 
 ifeq ($(strip $(MAJOR)),)
 MAJOR := 0
@@ -269,7 +269,7 @@ check-clean:
 	  git status -s; \
 	  exit 1; \
 	fi
-	@if [ "$$(git rev-parse @ 2>/dev/null)" != "$$(git rev-parse @{u} 2>/dev/null)" ]; then \
+	@if [ "$$$$(git rev-parse @ 2>/dev/null)" != "$$$$(git rev-parse @{u} 2>/dev/null)" ]; then \
 	  echo "❌ Local branch not in sync with upstream (push/pull first)."; \
 	  exit 1; \
 	fi
@@ -277,34 +277,34 @@ check-clean:
 NL := $(shell printf "\n")
 
 release-patch: fetch-tags check-clean
-	@NEW="v$(MAJOR).$(MINOR).$$(($(PATCH) + 1))"; \
-	echo "Tagging $$NEW (from LAST_TAG=$(LAST_TAG))"; \
-	TMP="$$(mktemp -t dof-tagmsg.XXXXXX)"; \
-	printf 'release: %s\n\n%s\n' "$$NEW" "$(CHANGELOG)" > "$$TMP"; \
-	git tag -a "$$NEW" -F "$$TMP"; \
-	rm -f "$$TMP"; \
-	git push origin "$$NEW"; \
-	echo "Tagged $$NEW"
+	@NEW="v$(MAJOR).$(MINOR).$$$$(($(PATCH) + 1))"; \
+	echo "Tagging $$$$NEW (from LAST_TAG=$(LAST_TAG))"; \
+	TMP="$$$$(mktemp -t dof-tagmsg.XXXXXX)"; \
+	printf 'release: %s\n\n%s\n' "$$$$NEW" "$(CHANGELOG)" > "$$$$TMP"; \
+	git tag -a "$$$$NEW" -F "$$$$TMP"; \
+	rm -f "$$$$TMP"; \
+	git push origin "$$$$NEW"; \
+	echo "Tagged $$$$NEW"
 
 release-minor: fetch-tags check-clean
-	@NEW="v$(MAJOR).$$(($(MINOR) + 1)).0"; \
-	echo "Tagging $$NEW (from LAST_TAG=$(LAST_TAG))"; \
-	TMP="$$(mktemp -t dof-tagmsg.XXXXXX)"; \
-	printf 'release: %s\n\n%s\n' "$$NEW" "$(CHANGELOG)" > "$$TMP"; \
-	git tag -a "$$NEW" -F "$$TMP"; \
-	rm -f "$$TMP"; \
-	git push origin "$$NEW"; \
-	echo "Tagged $$NEW"
+	@NEW="v$(MAJOR).$$$$(($(MINOR) + 1)).0"; \
+	echo "Tagging $$$$NEW (from LAST_TAG=$(LAST_TAG))"; \
+	TMP="$$$$(mktemp -t dof-tagmsg.XXXXXX)"; \
+	printf 'release: %s\n\n%s\n' "$$$$NEW" "$(CHANGELOG)" > "$$$$TMP"; \
+	git tag -a "$$$$NEW" -F "$$$$TMP"; \
+	rm -f "$$$$TMP"; \
+	git push origin "$$$$NEW"; \
+	echo "Tagged $$$$NEW"
 
 release-major: fetch-tags check-clean
-	@NEW="v$$(($(MAJOR) + 1)).0.0"; \
-	echo "Tagging $$NEW (from LAST_TAG=$(LAST_TAG))"; \
-	TMP="$$(mktemp -t dof-tagmsg.XXXXXX)"; \
-	printf 'release: %s\n\n%s\n' "$$NEW" "$(CHANGELOG)" > "$$TMP"; \
-	git tag -a "$$NEW" -F "$$TMP"; \
-	rm -f "$$TMP"; \
-	git push origin "$$NEW"; \
-	echo "Tagged $$NEW"
+	@NEW="v$$$$(($(MAJOR) + 1)).0.0"; \
+	echo "Tagging $$$$NEW (from LAST_TAG=$(LAST_TAG))"; \
+	TMP="$$$$(mktemp -t dof-tagmsg.XXXXXX)"; \
+	printf 'release: %s\n\n%s\n' "$$$$NEW" "$(CHANGELOG)" > "$$$$TMP"; \
+	git tag -a "$$$$NEW" -F "$$$$TMP"; \
+	rm -f "$$$$TMP"; \
+	git push origin "$$$$NEW"; \
+	echo "Tagged $$$$NEW"
 
 release: fetch-tags $(ENV_STAMP)
 	@echo "=== Running full test suite before release ==="
