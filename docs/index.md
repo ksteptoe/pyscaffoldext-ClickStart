@@ -1,15 +1,25 @@
 # ClickStart
 
-This is the documentation of **pyscaffoldext-ClickStart**.
+A PyScaffold extension to generate modern Click-based CLI projects with batteries included.
 
-```{note}
-This is the main page of your project's [Sphinx](https://www.sphinx-doc.org/) documentation.
-It is formatted in Markdown using [MyST](https://myst-parser.readthedocs.io/).
+ClickStart generates a complete, production-ready Python CLI project structure with:
 
-The [autodoc](https://www.sphinx-doc.org/en/master/ext/autodoc.html) extension is activated
-by default and lets you include documentation from docstrings. Docstrings can be written in
-[Google style](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) (recommended!),
-[NumPy style](https://numpydoc.readthedocs.io/en/latest/format.html) and classical style.
+- **Click-based CLI** - Modern command-line interface framework
+- **Modern packaging** - pyproject.toml only (no setup.py/setup.cfg)
+- **Ruff** - Fast linting and formatting
+- **pytest** - Testing with unit/integration separation
+- **Sphinx + MyST** - Markdown documentation
+- **Makefile** - Development task automation
+- **Pre-commit** - Git hooks configured
+
+## Quick Start
+
+```bash
+pip install pyscaffoldext-clickstart
+putup --clickstart my_project
+cd my_project
+make bootstrap
+make test
 ```
 
 ## Contents
@@ -18,6 +28,8 @@ by default and lets you include documentation from docstrings. Docstrings can be
 :maxdepth: 2
 
 Overview <readme>
+User Guide <usage>
+API Reference <api>
 Contributions & Help <contributing>
 License <license>
 Authors <authors>

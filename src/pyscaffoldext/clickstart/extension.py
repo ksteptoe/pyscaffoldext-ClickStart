@@ -1,3 +1,31 @@
+"""PyScaffold extension for generating Click-based CLI projects.
+
+This module provides the ClickStart extension for PyScaffold, which generates
+a modern, production-ready Python CLI project structure with:
+
+- Click-based command-line interface
+- Modern pyproject.toml-only configuration (no setup.py/setup.cfg)
+- Ruff for linting and formatting
+- pytest with unit/integration test separation
+- Sphinx documentation with MyST-Parser for Markdown
+- Makefile for common development tasks
+- Pre-commit hooks configured
+
+Example usage::
+
+    putup --clickstart my_project
+    cd my_project
+    make bootstrap
+    make test
+
+The extension registers several actions that modify the PyScaffold structure:
+
+1. ``add_files`` - Adds CLI, API, and test files
+2. ``add_clickstart_templates`` - Adds Makefile, pyproject.toml, pre-commit config
+3. ``add_markdown_docs`` - Replaces RST docs with Markdown equivalents
+4. ``reject_file`` - Removes unwanted default files (skeleton.py, setup.py, etc.)
+"""
+
 from __future__ import annotations
 
 from functools import reduce
@@ -33,9 +61,32 @@ REQUIREMENT_DEPENDENCIES = (
 
 
 def _substitute_brace_vars(text: str, opts: ScaffoldOpts) -> str:
-    """Support legacy {{ project_name }} / {{ package_name }} placeholders.
+    """Substitute brace-style template variables with project values.
 
-    We keep this because your templates currently use brace vars (not $vars).
+    Replaces placeholders like ``{{ project_name }}`` and ``{{ package_name }}``
+    with actual values from the scaffold options. Supports multiple placeholder
+    formats for flexibility.
+
+    Args:
+        text: Template text containing placeholders to substitute.
+        opts: PyScaffold options dictionary containing project/package names.
+            Expected keys: 'project', 'package' (or fallbacks 'project_name',
+            'package_name', 'name').
+
+    Returns:
+        Text with all placeholders replaced by actual values.
+
+    Supported placeholders:
+        - ``{{ project_name }}``, ``{{project_name}}``
+        - ``{{ ProjectName }}``, ``{{ProjectName}}``
+        - ``{{ package_name }}``, ``{{package_name}}``
+        - ``{{ PackageName }}``, ``{{PackageName}}``
+        - ``{{package}}``
+
+    Example:
+        >>> opts = {'project': 'my-app', 'package': 'my_app'}
+        >>> _substitute_brace_vars('Hello {{ project_name }}', opts)
+        'Hello my-app'
     """
     project = opts.get("project") or opts.get("project_name") or opts.get("name") or "project"
     package = opts.get("package") or opts.get("package_name") or project.replace("-", "_")
@@ -53,7 +104,22 @@ def _substitute_brace_vars(text: str, opts: ScaffoldOpts) -> str:
 
 
 def modify_gitignore(definition: Leaf, opts: ScaffoldOpts) -> ResolvedLeaf:
-    """Ensure setuptools_scm output is ignored: src/<package>/_version.py."""
+    """Modify .gitignore to include setuptools_scm generated version file.
+
+    Ensures the auto-generated ``src/<package>/_version.py`` file is ignored
+    by git, as it's regenerated on each build by setuptools_scm.
+
+    Args:
+        definition: Existing .gitignore content as a Leaf tuple (content, operation).
+        opts: PyScaffold options containing project and package names.
+
+    Returns:
+        ResolvedLeaf tuple with modified content and preserved operation.
+
+    Note:
+        This function is idempotent - if the version file line already exists,
+        it won't be added again.
+    """
     contents, original_op = resolve_leaf(definition)
     txt = reify_content(contents, opts) if contents is not None else ""
 
@@ -70,6 +136,17 @@ def modify_gitignore(definition: Leaf, opts: ScaffoldOpts) -> ResolvedLeaf:
 
 
 def _tests_readme(_opts: ScaffoldOpts) -> str:
+    """Generate README content for the tests/ directory.
+
+    Creates a markdown file explaining the test directory structure and
+    how to run different test categories.
+
+    Args:
+        _opts: PyScaffold options (unused but required by template signature).
+
+    Returns:
+        Markdown content for tests/README.md.
+    """
     return """# Tests
 
 This project separates fast unit tests from slower integration tests.
@@ -85,6 +162,18 @@ Run:
 
 
 def _unit_test_import(opts: ScaffoldOpts) -> str:
+    """Generate a basic unit test that verifies the package is importable.
+
+    Creates a simple smoke test to verify the package can be imported
+    without errors. This catches basic issues like syntax errors or
+    missing dependencies early.
+
+    Args:
+        opts: PyScaffold options containing the package name.
+
+    Returns:
+        Python source code for tests/unit/test_import.py.
+    """
     pkg = opts["package"]
     return f'''"""Unit smoke tests (fast)."""
 
@@ -97,6 +186,17 @@ def test_package_importable():
 
 
 def _integration_test_layout(opts: ScaffoldOpts) -> str:
+    """Generate an integration test that verifies project structure.
+
+    Creates a test marked with ``@pytest.mark.integration`` that verifies
+    the expected project layout exists (pyproject.toml, src directory, etc.).
+
+    Args:
+        opts: PyScaffold options containing the package name.
+
+    Returns:
+        Python source code for tests/integration/test_layout.py.
+    """
     pkg = opts["package"]
     return f'''"""Integration-ish smoke tests (filesystem/layout)."""
 
@@ -113,7 +213,28 @@ def test_project_layout_exists():
 
 
 def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Add CLI, API, runner, tests, and .gitignore augmentation."""
+    """Add Click CLI files and test structure to the project.
+
+    This action adds the core Click-based CLI files and sets up the
+    test directory structure with unit/integration separation.
+
+    Files added:
+        - ``src/<package>/cli.py`` - Click CLI entry point
+        - ``src/<package>/api.py`` - Core API logic
+        - ``src/<package>/__main__.py`` - ``python -m`` runner support
+        - ``tests/README.md`` - Testing documentation
+        - ``tests/unit/test_import.py`` - Import smoke test
+        - ``tests/integration/test_layout.py`` - Structure verification test
+
+    Also modifies ``.gitignore`` to exclude ``_version.py``.
+
+    Args:
+        struct: Current project structure dictionary.
+        opts: PyScaffold scaffold options.
+
+    Returns:
+        Tuple of (modified structure, options).
+    """
 
     cli_template = get_template("cli", relative_to=my_templates)
     api_template = get_template("api", relative_to=my_templates)
@@ -159,7 +280,28 @@ def add_files(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
 
 
 def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Add rendered project-level templates: Makefile, pyproject.toml, pre-commit."""
+    """Add project-level configuration files from ClickStart templates.
+
+    Renders and adds the main project configuration files, replacing
+    PyScaffold defaults with ClickStart's modern tooling setup.
+
+    Files added:
+        - ``Makefile`` - Development task automation
+        - ``pyproject.toml`` - Project metadata and tool configuration
+        - ``.pre-commit-config.yaml`` - Pre-commit hooks (Ruff-based)
+
+    Files removed:
+        - ``setup.cfg`` - Legacy configuration (replaced by pyproject.toml)
+        - ``.isort.cfg`` - Replaced by Ruff
+        - Any existing ``.pre-commit-config.yaml`` (replaced with Ruff-only config)
+
+    Args:
+        struct: Current project structure dictionary.
+        opts: PyScaffold scaffold options.
+
+    Returns:
+        Tuple of (modified structure, options).
+    """
 
     def render_template(name: str) -> str:
         tpl = get_template(name, relative_to=my_templates)
@@ -187,8 +329,28 @@ def add_clickstart_templates(struct: Structure, opts: ScaffoldOpts) -> ActionPar
 def add_markdown_docs(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     """Replace PyScaffold's RST documentation with Markdown equivalents.
 
-    Uses MyST-Parser for Sphinx integration, providing modern Markdown-based
-    documentation that is easier to write and maintain.
+    Removes all default RST documentation files and replaces them with
+    Markdown versions using MyST-Parser for Sphinx integration. This provides
+    modern, easier-to-write documentation.
+
+    Files removed (RST):
+        - ``README.rst``, ``AUTHORS.rst``, ``CHANGELOG.rst``, ``CONTRIBUTING.rst``
+        - ``docs/*.rst`` (index, readme, authors, changelog, contributing, license)
+        - ``docs/conf.py`` (replaced with MyST-aware version)
+
+    Files added (Markdown):
+        - ``README.md``, ``AUTHORS.md``, ``CHANGELOG.md``, ``CONTRIBUTING.md``
+        - ``docs/*.md`` (index, readme, authors, changelog, contributing, license)
+        - ``docs/conf.py`` - Sphinx config with MyST-Parser
+        - ``docs/requirements.txt`` - Sphinx dependencies
+        - ``.readthedocs.yml`` - ReadTheDocs configuration
+
+    Args:
+        struct: Current project structure dictionary.
+        opts: PyScaffold scaffold options.
+
+    Returns:
+        Tuple of (modified structure, options).
     """
 
     def render_template(name: str) -> str:
@@ -232,7 +394,24 @@ def add_markdown_docs(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
 
 
 def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
-    """Reject default skeleton/legacy packaging files from PyScaffold."""
+    """Remove unwanted default files from PyScaffold's structure.
+
+    Rejects (removes) files that ClickStart doesn't want in the final
+    project, including PyScaffold's default skeleton module and legacy
+    packaging files.
+
+    Files removed:
+        - ``src/<package>/skeleton.py`` - PyScaffold's example module
+        - ``setup.py`` - Legacy setup script
+        - ``setup.cfg`` - Legacy configuration (replaced by pyproject.toml)
+
+    Args:
+        struct: Current project structure dictionary.
+        opts: PyScaffold scaffold options.
+
+    Returns:
+        Tuple of (modified structure, options).
+    """
     pkg = opts["package"]
 
     struct = reject(struct, Path("src", pkg, "skeleton.py"))
@@ -243,6 +422,16 @@ def reject_file(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
 
 
 def _clickstart_version() -> str:
+    """Get the installed version of pyscaffoldext-clickstart.
+
+    Attempts to determine the version using importlib.metadata first,
+    which works for both regular and editable installs. Falls back to
+    reading from the generated _version.py file, and finally returns
+    "unknown" if version cannot be determined.
+
+    Returns:
+        Version string (e.g., "1.2.3") or "unknown" if not determinable.
+    """
     # Best: read the installed distribution version (works for editable installs)
     try:
         # Find which distribution provides the top-level package "pyscaffoldext"
@@ -262,19 +451,49 @@ def _clickstart_version() -> str:
 
 
 class Clickstart(Extension):
-    """Main entry point for the Clickstart PyScaffold extension."""
+    """PyScaffold extension for generating Click-based CLI projects.
 
-    # Name is optional (entry-point name usually defines the flag),
-    # but harmless and can make things clearer.
+    This extension modifies PyScaffold's default project structure to create
+    a modern, production-ready CLI application with sensible defaults.
+
+    Features:
+        - Click-based CLI with entry point configuration
+        - Modern pyproject.toml-only configuration
+        - Ruff for linting/formatting (replaces Black, isort, flake8)
+        - pytest with unit/integration test separation
+        - Sphinx documentation with MyST-Parser (Markdown)
+        - Makefile for development task automation
+        - Pre-commit hooks configured
+
+    Usage:
+        The extension is activated via the ``--clickstart`` flag::
+
+            putup --clickstart my_project
+
+    Attributes:
+        name: Extension name used for the CLI flag.
+        help_text: Description shown in ``putup --help``.
+
+    Example:
+        >>> from pyscaffoldext.clickstart.extension import Clickstart
+        >>> ext = Clickstart()
+        >>> print(ext.flag)
+        --clickstart
+    """
+
     name = "clickstart"
-
-    # This is the critical one for the error you're seeing:
     help_text = "Generate a Click-based CLI project scaffold (ClickStart templates)."
-
-    # Some PyScaffold versions also look at description:
     description = help_text
 
     def augment_cli(self, parser):
+        """Add ClickStart-specific CLI arguments.
+
+        Adds the ``--clickstart-version`` argument to display the installed
+        version of the ClickStart extension.
+
+        Args:
+            parser: argparse.ArgumentParser instance to augment.
+        """
         super().augment_cli(parser)
         parser.add_argument(
             "--clickstart-version",
@@ -283,18 +502,29 @@ class Clickstart(Extension):
         )
 
     def activate(self, actions: List[Action]) -> List[Action]:
+        """Register ClickStart actions with PyScaffold.
+
+        Registers the following actions in order:
+
+        1. ``add_files`` - After "define_structure"
+           Adds CLI, API, and test files
+        2. ``add_clickstart_templates`` - Before "create_structure"
+           Adds Makefile, pyproject.toml, pre-commit config
+        3. ``add_markdown_docs`` - Before "create_structure"
+           Replaces RST docs with Markdown
+        4. ``reject_file`` - Before "create_structure"
+           Removes unwanted default files
+
+        Args:
+            actions: List of PyScaffold actions to modify.
+
+        Returns:
+            Modified list of actions with ClickStart handlers registered.
+        """
         actions = self.register(actions, add_files, after="define_structure")
-
-        # Run late, so we override anything other extensions added (incl. pre_commit)
         actions = self.register(actions, add_clickstart_templates, before="create_structure")
-
-        # Add Markdown documentation (replaces PyScaffold's RST docs)
         actions = self.register(actions, add_markdown_docs, before="create_structure")
-
-        # Either fold reject_file into add_clickstart_templates (simplest),
-        # or also register it late:
         actions = self.register(actions, reject_file, before="create_structure")
-
         return actions
 
 
