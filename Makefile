@@ -263,7 +263,7 @@ check-clean:
 		git status -s; \
 		exit 1; \
 	fi
-	@if [ "$(git rev-parse @ 2>/dev/null)" != "$(git rev-parse @{u} 2>/dev/null)" ]; then \
+	@if [ "$$(git rev-parse @ 2>/dev/null)" != "$$(git rev-parse @{u} 2>/dev/null)" ]; then \
 		echo "❌ Local branch not in sync with upstream (push/pull first)."; \
 		exit 1; \
 	fi
