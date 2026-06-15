@@ -80,7 +80,8 @@ The generated Makefile provides common development tasks:
 | `make test-live` | Run `@live` marked tests |
 | `make lint` | Run Ruff checks |
 | `make format` | Auto-fix with Ruff |
-| `make docs` | Build Sphinx documentation |
+| `make docs` | Build Sphinx HTML documentation |
+| `make docs-pdf` | Build a single PDF of the docs (needs a LaTeX toolchain) |
 | `make build` | Build wheel and sdist |
 | `make upload` | Upload to PyPI via Twine |
 | `make version` | Show setuptools_scm version |
@@ -147,8 +148,12 @@ putup --clickstart my_project --pretend
 ### Documentation
 
 - **Sphinx** with MyST-Parser for Markdown
-- **ReadTheDocs** configuration included
+- **ReadTheDocs** configuration included (HTML **and** hosted PDF via `formats: [pdf]`)
 - **API autodoc** generation
+- **Single-file PDF** via `make docs-pdf` — XeLaTeX engine (Unicode-safe, even in
+  code spans) compiled with `latexmk`. Needs a system LaTeX toolchain
+  (`xelatex` + `latexmk` + `makeindex`); optional and not pip-installable, the
+  target fails fast with a friendly message when it's absent.
 
 ### CLI Framework
 

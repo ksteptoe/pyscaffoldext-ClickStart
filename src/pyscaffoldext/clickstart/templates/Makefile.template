@@ -61,7 +61,7 @@ UNIT_DIR   := tests/unit
 INTEG_DIR  := tests/integration
 SYSTEM_DIR := tests/system  # live/system tests (opt-in, uncached)
 
-.PHONY: help venv bootstrap precommit docs lint format \
+.PHONY: help venv bootstrap precommit docs docs-pdf lint format \
         test test-all test-live clean-tests \
         build upload version fetch-tags changelog changelog-md \
         release-show release release-patch release-minor release-major \
@@ -73,6 +73,7 @@ help:
 	@echo "  make bootstrap           - create $(VENV) and install .[dev]"
 	@echo "  make precommit           - install pre-commit hook (requires bootstrap)"
 	@echo "  make docs                - build Sphinx/MyST docs to docs/_build/html"
+	@echo "  make docs-pdf            - build a single PDF to docs/_build/latex/$(PKG).pdf (needs LaTeX)"
 	@echo "  make lint                - run Ruff checks"
 	@echo "  make format              - auto-fix via Ruff"
 	@echo "  make test                - run cached unit+integration tests (not live)"
@@ -107,6 +108,18 @@ precommit: bootstrap
 # Docs
 docs: $(ENV_STAMP)
 	"$(PY)" -m sphinx -b html docs docs/_build/html
+
+# Build a single PDF of the whole documentation set via the Sphinx LaTeX
+# builder + latexmk. Requires a LaTeX toolchain (xelatex + latexmk) on PATH;
+# install TeX Live or MiKTeX if `make docs-pdf` reports them missing.
+# Output: docs/_build/latex/$(PKG).pdf
+docs-pdf: $(ENV_STAMP)
+	@command -v latexmk >/dev/null 2>&1 || { \
+	  echo "latexmk not found. Install a LaTeX toolchain (TeX Live or MiKTeX) to build the PDF."; exit 1; }
+	rm -rf docs/_build/latex 2>/dev/null || true   # best-effort clean; tolerate Windows/OneDrive locks
+	"$(PY)" -m sphinx -b latex docs docs/_build/latex
+	cd docs/_build/latex && latexmk -pdfxe -interaction=nonstopmode -halt-on-error $(PKG).tex
+	@echo "PDF written to docs/_build/latex/$(PKG).pdf"
 
 # -----------------------------------------------------------------------------#
 # Linting / Formatting

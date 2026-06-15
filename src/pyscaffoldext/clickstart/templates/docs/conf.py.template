@@ -113,10 +113,26 @@ htmlhelp_basename = "${name}-doc"
 
 # -- Options for LaTeX output ------------------------------------------------
 
+# Use XeLaTeX so arbitrary Unicode in the docs (≤, →, ×, … — including inside
+# code spans, where pdflatex's character substitutions don't apply) renders
+# without per-character LaTeX declarations. Any glyph the font lacks degrades
+# to a warning rather than failing the build.
+latex_engine = "xelatex"
+
+# With xelatex, Sphinx defaults to xindy for the index; some TeX installs
+# (e.g. MiKTeX on Windows) ship makeindex but not xindy. makeindex handles the
+# ASCII autodoc index fine, so pin to it to keep `make docs-pdf` self-contained.
+# Trade-off: xindy builds better indexes for non-ASCII/multilingual content and
+# is what Read the Docs uses (RTD has it installed, so this setting is harmless
+# there). Remove this line if you need a high-quality index and can install xindy.
+latex_use_xindy = False
+
 latex_elements = {}
 
+# Name the LaTeX target after the package so the artifact is ``${package}.pdf``;
+# this must match the ``$(PKG).tex`` filename in the Makefile's ``docs-pdf`` target.
 latex_documents = [
-    ("index", "user_guide.tex", "${name} Documentation", "${author}", "manual")
+    ("index", "${package}.tex", "${name} Documentation", "${author}", "manual")
 ]
 
 # -- External mapping --------------------------------------------------------

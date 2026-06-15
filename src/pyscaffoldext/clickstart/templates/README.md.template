@@ -28,8 +28,17 @@ make dev      # Install in development mode with all dependencies
 make test     # Run tests
 make lint     # Run linter
 make format   # Format code
-make docs     # Build documentation
+make docs     # Build HTML documentation
+make docs-pdf # Build a single PDF of the docs (needs a LaTeX toolchain)
 ```
+
+`make docs-pdf` produces `docs/_build/latex/${package}.pdf`. It needs a system
+LaTeX toolchain on `PATH` — `xelatex`, `latexmk`, and `makeindex` (install
+[TeX Live](https://www.tug.org/texlive/) or, on Windows,
+[MiKTeX](https://miktex.org/)). The toolchain is **not** pip-installable and is
+optional: the target fails fast with a clear message if `latexmk` is missing.
+Read the Docs builds and hosts the PDF automatically (its image already has the
+toolchain), so no local install is required just to publish a PDF.
 
 ## Note
 
