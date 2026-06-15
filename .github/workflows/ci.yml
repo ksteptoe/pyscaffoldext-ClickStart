@@ -39,6 +39,13 @@ jobs:
           pip install pytest pytest-cov pyyaml pyscaffold
           pip install -e .
 
+      - name: Configure Git
+        # PyScaffold refuses to scaffold (GitNotConfigured) unless a git
+        # identity is set; the tests generate real projects via the CLI.
+        run: |
+          git config --global user.name "CI"
+          git config --global user.email "ci@example.com"
+
       - name: Run tests with coverage
         run: |
           pytest tests/ -v --cov=pyscaffoldext.clickstart --cov-report=xml --cov-report=term-missing
