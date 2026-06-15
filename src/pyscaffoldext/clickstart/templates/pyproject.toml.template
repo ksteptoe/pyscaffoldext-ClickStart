@@ -17,8 +17,18 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Dev extras: tests, coverage, linting, releases
+# Documentation toolchain — single source of truth for doc deps.
+# Read the Docs installs this via `extras: [docs]` (see .readthedocs.yml);
+# there is intentionally no docs/requirements.txt.
+docs = [
+    "sphinx>=7",
+    "myst-parser>=2",
+]
+# Dev extras: tests, coverage, linting, releases, docs.
+# The docs toolchain is folded in so `make docs` (which installs .[dev]) is
+# self-sufficient.
 dev = [
+    "{{ project_name }}[docs]",
     "pytest>=8",
     "pytest-cov>=5",
     "pytest-xdist>=3.6",

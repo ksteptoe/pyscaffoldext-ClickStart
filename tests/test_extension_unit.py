@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from pyscaffoldext.clickstart.extension import (
     _clickstart_version,
     _integration_test_layout,

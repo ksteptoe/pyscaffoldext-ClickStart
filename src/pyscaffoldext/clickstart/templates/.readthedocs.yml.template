@@ -16,6 +16,9 @@ formats:
 
 python:
   install:
-    - requirements: docs/requirements.txt
+    # Install the package with its `docs` extra (single source of truth in
+    # pyproject.toml). No docs/requirements.txt.
     - method: pip
       path: .
+      extras:
+        - docs

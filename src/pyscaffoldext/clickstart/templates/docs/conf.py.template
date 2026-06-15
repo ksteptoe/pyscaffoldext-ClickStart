@@ -53,6 +53,15 @@ extensions = [
 
 templates_path = ["_templates"]
 
+# If the package __init__ re-exports its public API via __all__, autodoc would
+# otherwise document each re-exported name twice (e.g. ``pkg.Thing`` and
+# ``pkg.module.Thing``), making ``:class:`Thing``` cross-references ambiguous.
+# Ignoring __all__ at the package level keeps one canonical target per object,
+# in its defining submodule. Harmless when no __all__ is present.
+autodoc_default_options = {
+    "ignore-module-all": True,
+}
+
 source_suffix = {
     ".rst": "restructuredtext",
     ".md": "markdown",

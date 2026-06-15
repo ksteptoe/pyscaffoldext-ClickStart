@@ -74,14 +74,12 @@ def test_makefile_shell_escaping(tmpfolder):
     makefile_path = Path("my_project/Makefile")
     assert makefile_path.exists(), "Makefile should be generated"
 
-    makefile_content = makefile_path.read_text()
+    makefile_content = makefile_path.read_text(encoding="utf-8")
 
     # Bug 1: Version parsing should use sed/cut approach (not shell parameter expansion)
     # The old buggy approach used: $(shell sh -lc 't="$(LAST_TAG)"; t="${t#v}"; ...')
     # which fails because Make interprets ${...} as variable expansion
-    assert "sed 's/^v//'" in makefile_content, (
-        "MAJOR/MINOR/PATCH should use sed for version parsing"
-    )
+    assert "sed 's/^v//'" in makefile_content, "MAJOR/MINOR/PATCH should use sed for version parsing"
     assert "cut -d. -f1" in makefile_content, "MAJOR should use cut -d. -f1"
     assert "cut -d. -f2" in makefile_content, "MINOR should use cut -d. -f2"
     assert "cut -d. -f3" in makefile_content, "PATCH should use cut -d. -f3"
@@ -102,9 +100,7 @@ def test_makefile_shell_escaping(tmpfolder):
     assert "$$NEW" in release_patch, "Shell variable NEW must be escaped as $$NEW"
     assert "$$TMP" in release_patch, "Shell variable TMP must be escaped as $$TMP"
     assert "$$(mktemp" in release_patch, "mktemp command must be escaped as $$(mktemp"
-    assert "$$(($(PATCH)" in release_patch, (
-        "Shell arithmetic must be escaped as $$(( with Make var $(PATCH)"
-    )
+    assert "$$(($(PATCH)" in release_patch, "Shell arithmetic must be escaped as $$(( with Make var $(PATCH)"
 
     # Check release-minor similarly
     release_minor_match = re.search(
@@ -114,9 +110,7 @@ def test_makefile_shell_escaping(tmpfolder):
     )
     assert release_minor_match, "release-minor target should exist"
     release_minor = release_minor_match.group(0)
-    assert "$$(($(MINOR)" in release_minor, (
-        "release-minor should have correctly escaped shell arithmetic"
-    )
+    assert "$$(($(MINOR)" in release_minor, "release-minor should have correctly escaped shell arithmetic"
 
     # Check release-major similarly
     release_major_match = re.search(
@@ -126,6 +120,4 @@ def test_makefile_shell_escaping(tmpfolder):
     )
     assert release_major_match, "release-major target should exist"
     release_major = release_major_match.group(0)
-    assert "$$(($(MAJOR)" in release_major, (
-        "release-major should have correctly escaped shell arithmetic"
-    )
+    assert "$$(($(MAJOR)" in release_major, "release-major should have correctly escaped shell arithmetic"

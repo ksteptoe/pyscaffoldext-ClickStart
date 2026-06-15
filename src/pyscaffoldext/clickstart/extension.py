@@ -342,8 +342,11 @@ def add_markdown_docs(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
         - ``README.md``, ``AUTHORS.md``, ``CHANGELOG.md``, ``CONTRIBUTING.md``
         - ``docs/*.md`` (index, readme, authors, changelog, contributing, license)
         - ``docs/conf.py`` - Sphinx config with MyST-Parser
-        - ``docs/requirements.txt`` - Sphinx dependencies
-        - ``.readthedocs.yml`` - ReadTheDocs configuration
+        - ``.readthedocs.yml`` - ReadTheDocs configuration (installs the ``docs`` extra)
+
+    Documentation dependencies live solely in ``pyproject.toml`` (the ``docs``
+    optional-dependencies extra, folded into ``dev``); no ``docs/requirements.txt``
+    is generated.
 
     Args:
         struct: Current project structure dictionary.
@@ -370,6 +373,9 @@ def add_markdown_docs(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
     struct = reject(struct, Path("docs", "contributing.rst"))
     struct = reject(struct, Path("docs", "license.rst"))
     struct = reject(struct, Path("docs", "conf.py"))
+    # Doc deps live solely in pyproject.toml (the `docs` extra); drop
+    # PyScaffold's default docs/requirements.txt so there's one source of truth.
+    struct = reject(struct, Path("docs", "requirements.txt"))
 
     # Add Markdown documentation files
     files: Structure = {
@@ -386,7 +392,6 @@ def add_markdown_docs(struct: Structure, opts: ScaffoldOpts) -> ActionParams:
             "contributing.md": (render_template("docs/contributing.md"), NO_OVERWRITE),
             "license.md": (render_template("docs/license.md"), NO_OVERWRITE),
             "conf.py": (render_template("docs/conf.py"), NO_OVERWRITE),
-            "requirements.txt": (render_template("docs/requirements.txt"), NO_OVERWRITE),
         },
     }
 

@@ -6,10 +6,10 @@ These tests generate actual scaffolds and verify the resulting files are valid.
 from __future__ import annotations
 
 import ast
-import tomllib
 from pathlib import Path
 
 import pytest
+import tomllib
 import yaml
 from pyscaffold import cli
 
@@ -36,7 +36,7 @@ class TestGeneratedPythonFiles:
         cli_path = generated_project / "src" / "test_package" / "cli.py"
         assert cli_path.exists(), "cli.py should be generated"
 
-        content = cli_path.read_text()
+        content = cli_path.read_text(encoding="utf-8")
         # Should compile without SyntaxError
         ast.parse(content)
 
@@ -45,7 +45,7 @@ class TestGeneratedPythonFiles:
         api_path = generated_project / "src" / "test_package" / "api.py"
         assert api_path.exists(), "api.py should be generated"
 
-        content = api_path.read_text()
+        content = api_path.read_text(encoding="utf-8")
         ast.parse(content)
 
     def test_generated_runner_is_valid_python(self, generated_project):
@@ -53,7 +53,7 @@ class TestGeneratedPythonFiles:
         runner_path = generated_project / "src" / "test_package" / "__main__.py"
         assert runner_path.exists(), "__main__.py should be generated"
 
-        content = runner_path.read_text()
+        content = runner_path.read_text(encoding="utf-8")
         ast.parse(content)
 
     def test_generated_init_is_valid_python(self, generated_project):
@@ -61,7 +61,7 @@ class TestGeneratedPythonFiles:
         init_path = generated_project / "src" / "test_package" / "__init__.py"
         assert init_path.exists(), "__init__.py should be generated"
 
-        content = init_path.read_text()
+        content = init_path.read_text(encoding="utf-8")
         ast.parse(content)
 
     def test_unit_test_is_valid_python(self, generated_project):
@@ -69,7 +69,7 @@ class TestGeneratedPythonFiles:
         test_path = generated_project / "tests" / "unit" / "test_import.py"
         assert test_path.exists(), "test_import.py should be generated"
 
-        content = test_path.read_text()
+        content = test_path.read_text(encoding="utf-8")
         ast.parse(content)
 
     def test_integration_test_is_valid_python(self, generated_project):
@@ -77,7 +77,7 @@ class TestGeneratedPythonFiles:
         test_path = generated_project / "tests" / "integration" / "test_layout.py"
         assert test_path.exists(), "test_layout.py should be generated"
 
-        content = test_path.read_text()
+        content = test_path.read_text(encoding="utf-8")
         ast.parse(content)
 
 
@@ -89,7 +89,7 @@ class TestGeneratedConfigFiles:
         pyproject_path = generated_project / "pyproject.toml"
         assert pyproject_path.exists(), "pyproject.toml should be generated"
 
-        content = pyproject_path.read_text()
+        content = pyproject_path.read_text(encoding="utf-8")
         # tomllib.loads will raise on invalid TOML
         data = tomllib.loads(content)
 
@@ -98,12 +98,27 @@ class TestGeneratedConfigFiles:
         assert "project" in data
         assert data["project"]["name"] == "test_project"
 
+    def test_pyproject_has_docs_extra_folded_into_dev(self, generated_project):
+        """Doc deps live in a `docs` extra that is folded into `dev`."""
+        content = (generated_project / "pyproject.toml").read_text(encoding="utf-8")
+        data = tomllib.loads(content)
+        extras = data["project"]["optional-dependencies"]
+
+        # The `docs` extra is the single source of truth for the doc toolchain.
+        assert "docs" in extras, "pyproject.toml should define a `docs` extra"
+        docs_deps = " ".join(extras["docs"])
+        assert "sphinx" in docs_deps
+        assert "myst-parser" in docs_deps
+
+        # `dev` pulls in the docs extra so `make docs` (installs .[dev]) works.
+        assert any("[docs]" in dep for dep in extras["dev"]), "`dev` extra should include the project's `[docs]` extra"
+
     def test_generated_precommit_is_valid_yaml(self, generated_project):
         """Verify .pre-commit-config.yaml is valid YAML."""
         precommit_path = generated_project / ".pre-commit-config.yaml"
         assert precommit_path.exists(), ".pre-commit-config.yaml should be generated"
 
-        content = precommit_path.read_text()
+        content = precommit_path.read_text(encoding="utf-8")
         # yaml.safe_load will raise on invalid YAML
         data = yaml.safe_load(content)
 
@@ -115,10 +130,24 @@ class TestGeneratedConfigFiles:
         rtd_path = generated_project / ".readthedocs.yml"
         assert rtd_path.exists(), ".readthedocs.yml should be generated"
 
-        content = rtd_path.read_text()
+        content = rtd_path.read_text(encoding="utf-8")
         data = yaml.safe_load(content)
 
         assert data is not None
+
+    def test_readthedocs_installs_docs_extra(self, generated_project):
+        """RTD installs the package with its `docs` extra, not requirements.txt."""
+        content = (generated_project / ".readthedocs.yml").read_text(encoding="utf-8")
+        data = yaml.safe_load(content)
+
+        installs = data["python"]["install"]
+        # No reference to the (now removed) docs/requirements.txt.
+        assert not any("requirements" in step for step in installs), (
+            ".readthedocs.yml should not reference docs/requirements.txt"
+        )
+        # Installs the package with the `docs` extra.
+        extras = [e for step in installs for e in step.get("extras", [])]
+        assert "docs" in extras, ".readthedocs.yml should install extras: [docs]"
 
 
 class TestGeneratedProjectStructure:
@@ -152,12 +181,16 @@ class TestGeneratedProjectStructure:
             "contributing.md",
             "license.md",
             "conf.py",
-            "requirements.txt",
         ]
 
         for filename in expected_files:
             filepath = docs_dir / filename
             assert filepath.exists(), f"docs/{filename} should exist"
+
+    def test_no_docs_requirements_txt(self, generated_project):
+        """Doc deps live only in pyproject.toml; no docs/requirements.txt."""
+        req = generated_project / "docs" / "requirements.txt"
+        assert not req.exists(), "docs/requirements.txt should NOT be generated"
 
     def test_generated_src_structure(self, generated_project):
         """Verify src/<package>/ has all expected files."""
@@ -184,13 +217,13 @@ class TestGitignore:
         gitignore_path = generated_project / ".gitignore"
         assert gitignore_path.exists(), ".gitignore should be generated"
 
-        content = gitignore_path.read_text()
+        content = gitignore_path.read_text(encoding="utf-8")
         assert "src/test_package/_version.py" in content
 
     def test_gitignore_has_setuptools_scm_comment(self, generated_project):
         """Verify .gitignore has explanatory comment."""
         gitignore_path = generated_project / ".gitignore"
-        content = gitignore_path.read_text()
+        content = gitignore_path.read_text(encoding="utf-8")
         assert "setuptools_scm" in content.lower() or "setuptools-scm" in content.lower()
 
 
@@ -244,7 +277,7 @@ class TestRejectedFiles:
         conftest = generated_project / "tests" / "conftest.py"
         # May or may not exist, but if it does, it shouldn't be PyScaffold's default
         if conftest.exists():
-            content = conftest.read_text()
+            content = conftest.read_text(encoding="utf-8")
             # PyScaffold's default conftest typically has specific content
             # Our extension removes it, so it shouldn't have the default fixture
             assert "capsys" not in content or "custom" in content.lower()
@@ -266,13 +299,13 @@ class TestMakefile:
     def test_makefile_has_help_target(self, generated_project):
         """Verify Makefile has help target."""
         makefile = generated_project / "Makefile"
-        content = makefile.read_text()
+        content = makefile.read_text(encoding="utf-8")
         assert "help:" in content
 
     def test_makefile_has_test_targets(self, generated_project):
         """Verify Makefile has test-related targets."""
         makefile = generated_project / "Makefile"
-        content = makefile.read_text()
+        content = makefile.read_text(encoding="utf-8")
 
         assert "test:" in content
         assert "test-all:" in content
@@ -280,7 +313,7 @@ class TestMakefile:
     def test_makefile_has_lint_targets(self, generated_project):
         """Verify Makefile has lint/format targets."""
         makefile = generated_project / "Makefile"
-        content = makefile.read_text()
+        content = makefile.read_text(encoding="utf-8")
 
         assert "lint:" in content
         assert "format:" in content
@@ -297,7 +330,7 @@ class TestDocumentation:
     def test_readme_contains_project_name(self, generated_project):
         """Verify README.md contains project name."""
         readme = generated_project / "README.md"
-        content = readme.read_text()
+        content = readme.read_text(encoding="utf-8")
         assert "test_project" in content
 
     def test_docs_conf_is_valid_python(self, generated_project):
@@ -305,11 +338,22 @@ class TestDocumentation:
         conf_path = generated_project / "docs" / "conf.py"
         assert conf_path.exists(), "docs/conf.py should be generated"
 
-        content = conf_path.read_text()
+        content = conf_path.read_text(encoding="utf-8")
         ast.parse(content)
 
     def test_docs_conf_has_myst_parser(self, generated_project):
         """Verify docs/conf.py configures MyST-Parser."""
         conf_path = generated_project / "docs" / "conf.py"
-        content = conf_path.read_text()
+        content = conf_path.read_text(encoding="utf-8")
         assert "myst_parser" in content
+
+    def test_docs_conf_ignores_module_all(self, generated_project):
+        """conf.py disambiguates __all__ re-exports via ignore-module-all.
+
+        Keeps one canonical autodoc target per object so ``:class:`Thing```
+        cross-references resolve when the package __init__ re-exports its API.
+        """
+        conf_path = generated_project / "docs" / "conf.py"
+        content = conf_path.read_text(encoding="utf-8")
+        assert "autodoc_default_options" in content
+        assert "ignore-module-all" in content
