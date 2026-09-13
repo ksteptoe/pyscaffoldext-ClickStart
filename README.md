@@ -170,10 +170,10 @@ Edit `src/<package>/cli.py` to add commands:
 
 ```python
 @cli.command()
-@click.argument('name')
+@click.argument("name")
 def greet(name):
     """Greet someone by name."""
-    click.echo(f'Hello, {name}!')
+    click.echo(f"Hello, {name}!")
 ```
 
 ### Adding Dependencies
@@ -199,9 +199,9 @@ Mark integration tests:
 ```python
 import pytest
 
+
 @pytest.mark.integration
-def test_something_slow():
-    ...
+def test_something_slow(): ...
 ```
 
 ### Environment Variables

@@ -91,10 +91,11 @@ The generated `cli.py` contains a basic Click application:
 import click
 from .api import my_project_api
 
+
 @click.command()
 @click.version_option()
-@click.option('-v', '--verbose', 'loglevel', flag_value=logging.INFO)
-@click.option('-vv', '--very_verbose', 'loglevel', flag_value=logging.DEBUG)
+@click.option("-v", "--verbose", "loglevel", flag_value=logging.INFO)
+@click.option("-vv", "--very_verbose", "loglevel", flag_value=logging.DEBUG)
 def cli(loglevel):
     """Your CLI description here."""
     my_project_api(loglevel)
@@ -106,11 +107,11 @@ For a simple CLI with one command, modify the existing function:
 
 ```python
 @click.command()
-@click.argument('name')
-@click.option('--greeting', default='Hello', help='Greeting to use')
+@click.argument("name")
+@click.option("--greeting", default="Hello", help="Greeting to use")
 def cli(name, greeting):
     """Greet someone."""
-    click.echo(f'{greeting}, {name}!')
+    click.echo(f"{greeting}, {name}!")
 ```
 
 For multiple commands, convert to a command group:
@@ -121,17 +122,20 @@ def cli():
     """My CLI application."""
     pass
 
+
 @cli.command()
-@click.argument('name')
+@click.argument("name")
 def greet(name):
     """Greet someone."""
-    click.echo(f'Hello, {name}!')
+    click.echo(f"Hello, {name}!")
+
 
 @cli.command()
 def version():
     """Show version."""
     from . import __version__
-    click.echo(f'Version: {__version__}')
+
+    click.echo(f"Version: {__version__}")
 ```
 
 ### The API Module (`api.py`)
@@ -214,6 +218,7 @@ Unit test example:
 # tests/unit/test_api.py
 from my_project.api import process_data
 
+
 def test_process_data():
     result = process_data("input")
     assert result == "expected"
@@ -227,12 +232,13 @@ import pytest
 from click.testing import CliRunner
 from my_project.cli import cli
 
+
 @pytest.mark.integration
 def test_cli_greet():
     runner = CliRunner()
-    result = runner.invoke(cli, ['greet', 'World'])
+    result = runner.invoke(cli, ["greet", "World"])
     assert result.exit_code == 0
-    assert 'Hello, World' in result.output
+    assert "Hello, World" in result.output
 ```
 
 ## Building and Releasing
