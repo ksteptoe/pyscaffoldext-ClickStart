@@ -318,6 +318,33 @@ class TestMakefile:
         assert "lint:" in content
         assert "format:" in content
 
+    def test_makefile_stamp_targets_always_run(self, generated_project):
+        """Stamp targets carry a FORCE prerequisite so the signature check runs every time.
+
+        Without it an existing stamp file is up to date forever and NO_CACHE=1 or
+        edits under src/ and tests/ never trigger a re-run.
+        """
+        makefile = generated_project / "Makefile"
+        content = makefile.read_text(encoding="utf-8")
+
+        assert "FORCE:" in content
+        assert "$(UNIT_STAMP): FORCE |" in content
+        assert "$(INTEG_STAMP): FORCE |" in content
+
+    def test_makefile_per_tier_coverage_files(self, generated_project):
+        """Each tier writes its own coverage file and `test` combines them.
+
+        A shared .coverage wiped by the unit recipe under-reported the aggregated
+        coverage whenever only the unit tier re-ran.
+        """
+        makefile = generated_project / "Makefile"
+        content = makefile.read_text(encoding="utf-8")
+
+        assert "rm -f .coverage;" not in content
+        assert "COVERAGE_FILE=$(UNIT_COV)" in content
+        assert "COVERAGE_FILE=$(INTEG_COV)" in content
+        assert "coverage combine --keep $(UNIT_COV) $(INTEG_COV)" in content
+
 
 class TestDocumentation:
     """Tests for generated documentation files."""
