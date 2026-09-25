@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Makefile template (and this repo's Makefile): new `pipx-install` target that runs
+  `pipx install --force` on the checkout. `make release` now calls it after tagging,
+  so the released CLI is installed locally via pipx. Configurable with `PIPX` and
+  `PIPX_INSTALL_ARGS`.
 - Makefile template: the unit and integration stamp targets now carry a FORCE
   prerequisite, so the recipe (and its sha1 signature check over tests/, src/ and
   pyproject.toml) runs on every invocation. Previously an existing stamp file was

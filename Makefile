@@ -45,6 +45,12 @@ NO_CACHE  ?= 0
 # Default release kind for `make release` (patch|minor|major)
 KIND ?= patch
 
+# pipx used by `make pipx-install` (run automatically at the end of `make release`).
+# This repo is a PyScaffold extension with no console script of its own, so
+# --include-deps exposes pyscaffold's `putup` from the same pipx venv.
+PIPX ?= pipx
+PIPX_INSTALL_ARGS ?= --include-deps
+
 # Pytest flags
 PYTEST           := $(PY) -m pytest
 PYTEST_Q         := -q
@@ -64,7 +70,7 @@ SYSTEM_DIR := tests/system  # live/system tests (opt-in, uncached)
         test test-all test-live clean-tests \
         build upload version fetch-tags changelog changelog-md \
         release-show release release-patch release-minor release-major \
-        clean run-cli check-clean
+        pipx-install clean run-cli check-clean
 
 help:
 	@echo "Common targets:"
@@ -83,7 +89,8 @@ help:
 	@echo "  make changelog           - show changes since last Git tag"
 	@echo "  make changelog-md        - write docs/CHANGELOG.md from Git history"
 	@echo "  make release-show        - show scm ver, installed ver, last Git tag"
-	@echo "  make release             - run tests, show changelog and tag (KIND=patch|minor|major)"
+	@echo "  make release             - run tests, show changelog, tag, then pipx-install (KIND=patch|minor|major)"
+	@echo "  make pipx-install        - (re)install this checkout into pipx (pipx install --force)"
 	@echo "  make clean               - remove build artifacts"
 	@echo "  make run-cli             - run via python -m package (pass CLI_ARGS=...)"
 	@echo ""
@@ -305,6 +312,16 @@ release: fetch-tags $(ENV_STAMP)
 	  echo "Unknown KIND=$(KIND). Use: patch | minor | major"; \
 	  exit 1; \
 	fi
+	@echo "=== Installing released version locally via pipx ==="
+	$(MAKE) pipx-install
+
+# Force a local pipx (re)install of this checkout. Runs at the end of `make release`,
+# after tagging, so the version pipx records matches the release just made.
+pipx-install:
+	@command -v $(PIPX) >/dev/null 2>&1 || { \
+	  echo "❌ $(PIPX) not found on PATH. Install pipx (https://pipx.pypa.io) or set PIPX=..."; exit 1; }
+	$(PIPX) install --force $(PIPX_INSTALL_ARGS) "$(CURDIR)"
+	@echo "✅ pipx install complete"
 
 # -----------------------------------------------------------------------------#
 # CLI convenience

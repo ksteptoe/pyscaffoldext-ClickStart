@@ -86,7 +86,8 @@ The generated Makefile provides common development tasks:
 | `make upload` | Upload to PyPI via Twine |
 | `make version` | Show setuptools_scm version |
 | `make changelog` | Show changes since last tag |
-| `make release` | Run tests and create git tag |
+| `make release` | Run tests, create git tag, then `pipx install` the release locally |
+| `make pipx-install` | Force a local `pipx install --force` of the checkout |
 | `make clean` | Remove build artifacts |
 | `make run-cli` | Run CLI via `python -m` |
 
@@ -100,7 +101,10 @@ make release KIND=minor  # v1.0.0 -> v1.1.0
 make release KIND=major  # v1.0.0 -> v2.0.0
 ```
 
-This runs tests, generates changelog, creates a signed git tag, and pushes to origin.
+This runs tests, generates changelog, creates a signed git tag, pushes to origin, and
+finishes with `make pipx-install`, so the CLI on your `PATH` is the version just released.
+`pipx` must be installed; set `PIPX=...` to point at a different executable and
+`PIPX_INSTALL_ARGS=--include-deps` to also expose scripts from dependencies.
 
 ## Configuration Options
 

@@ -3,16 +3,16 @@
 State-of-play for whoever picks this up next (human or agent). Update after every
 completed task or release: current state, HEAD, latest tag, task list.
 
-## Current state (2026-09-13)
+## Current state (2026-09-24)
 
 | Item | Value |
 |---|---|
 | Branch | `main` |
-| HEAD | `9a7842f` — Format Python code blocks in Markdown docs so Ruff 0.16 format check passes |
+| HEAD | `a35e67d` — Add HANDOFF.md state-of-play doc |
 | Latest tag | `v2.2.5` (published to PyPI, 2026-06-15) |
-| Unreleased commits | 3 (see below) |
+| Unreleased commits | 4 (see below), plus uncommitted pipx-install work |
 | CI | Green on all six jobs (lint, build, 4× test matrix) as of run 34737250170 |
-| Working tree | Clean after commit |
+| Working tree | Uncommitted: pipx-install feature (Makefile, Makefile.template, tests, docs, CHANGELOG) |
 
 ### Unreleased since v2.2.5
 
@@ -22,11 +22,25 @@ completed task or release: current state, HEAD, latest tag, task list.
   `.stamps/coverage.integration`) combined before the aggregated report
 - `9a7842f` Reformat fenced Python blocks in `README.md` and `docs/usage.md`
   (CI fix only, no behaviour change)
+- `a35e67d` Add HANDOFF.md
 
 `CHANGELOG.md` already carries the two Makefile-template entries under
 **Unreleased**. The release fix and the docs reformat are not listed there.
 
-## What happened this session
+## What happened this session (2026-09-24)
+
+Added a `pipx-install` Makefile target to both this repo's `Makefile` and the
+scaffold's `Makefile.template`. It runs `pipx install --force $(PIPX_INSTALL_ARGS)
+"$(CURDIR)"` and fails clearly if `pipx` is not on PATH. `make release` now calls
+it as its final step, after the tag is pushed, so the pipx-installed version matches
+the new tag. This repo sets `PIPX_INSTALL_ARGS ?= --include-deps` because it has no
+console script of its own and `putup` comes from the pyscaffold dependency; the
+template leaves it empty. Two tests added in `tests/test_templates.py`
+(`TestMakefilePipxInstall`); README, `docs/usage.md` and `CHANGELOG.md` updated.
+Verified: `make -n pipx-install` here and in a freshly scaffolded project; Makefile
+tests pass; `make lint` green. Not yet committed.
+
+## What happened previously (2026-09-13)
 
 CI had failed on the last two pushes (2026-08-31 and 2026-09-13). Both failures
 were the **lint** job only. The workflow installs unpinned Ruff, which reached

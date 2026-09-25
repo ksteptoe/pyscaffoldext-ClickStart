@@ -73,6 +73,29 @@ class TestMakefileVariables:
         assert "CODE_DIRS  := src/$(PKG)" in content
 
 
+class TestMakefilePipxInstall:
+    """The generated Makefile installs the released checkout into pipx."""
+
+    def test_makefile_has_pipx_install_target(self, generated_project):
+        """A pipx-install target exists and calls pipx install --force on the checkout."""
+        makefile = generated_project / "Makefile"
+        content = makefile.read_text(encoding="utf-8")
+
+        assert "pipx-install:" in content
+        assert '$(PIPX) install --force $(PIPX_INSTALL_ARGS) "$(CURDIR)"' in content
+        assert "PIPX ?= pipx" in content
+
+    def test_makefile_release_triggers_pipx_install(self, generated_project):
+        """make release ends by invoking pipx-install, after the tag step."""
+        makefile = generated_project / "Makefile"
+        content = makefile.read_text(encoding="utf-8")
+
+        release_body = content.split("\nrelease: ", 1)[1].split("\npipx-install:", 1)[0]
+        assert "$(MAKE) release-patch" in release_body
+        assert "$(MAKE) pipx-install" in release_body
+        assert release_body.index("$(MAKE) release-patch") < release_body.index("$(MAKE) pipx-install")
+
+
 class TestMakefileWithHyphenatedProject:
     """Test Makefile with hyphenated project name."""
 

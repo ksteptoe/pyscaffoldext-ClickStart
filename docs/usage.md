@@ -286,6 +286,18 @@ The release process:
 2. Shows changelog since last tag
 3. Creates annotated git tag
 4. Pushes tag to origin
+5. Runs `make pipx-install` so the released CLI is on your `PATH`
+
+### Installing locally with pipx
+
+```bash
+make pipx-install
+```
+
+Runs `pipx install --force` on the checkout. `make release` calls this after tagging,
+so the version pipx records matches the tag. Requires `pipx` on `PATH`; override with
+`PIPX=/path/to/pipx`. Pass `PIPX_INSTALL_ARGS=--include-deps` to also expose console
+scripts belonging to dependencies.
 
 ### Uploading to PyPI
 
@@ -377,6 +389,8 @@ pre-commit autoupdate
 | `VENV` | `.venv` | Virtual environment path |
 | `NO_CACHE` | `0` | Set to `1` to force test re-run |
 | `KIND` | `patch` | Release type (patch/minor/major) |
+| `PIPX` | `pipx` | pipx executable used by `make pipx-install` |
+| `PIPX_INSTALL_ARGS` | *(empty)* | Extra flags for `pipx install` (e.g. `--include-deps`) |
 | `CLI_ARGS` | | Arguments for `make run-cli` |
 
 ### Usage
