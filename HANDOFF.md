@@ -3,16 +3,16 @@
 State-of-play for whoever picks this up next (human or agent). Update after every
 completed task or release: current state, HEAD, latest tag, task list.
 
-## Current state (2026-09-24)
+## Current state (2026-09-25)
 
 | Item | Value |
 |---|---|
 | Branch | `main` |
-| HEAD | `a35e67d` — Add HANDOFF.md state-of-play doc |
+| HEAD | `4b98f1d` — Add pipx-install target; make release installs the tagged checkout via pipx |
 | Latest tag | `v2.2.5` (published to PyPI, 2026-06-15) |
-| Unreleased commits | 4 (see below), plus uncommitted pipx-install work |
+| Unreleased commits | 5 (see below) |
 | CI | Green on all six jobs (lint, build, 4× test matrix) as of run 34737250170 |
-| Working tree | Uncommitted: pipx-install feature (Makefile, Makefile.template, tests, docs, CHANGELOG) |
+| Working tree | Clean, pushed to origin/main |
 
 ### Unreleased since v2.2.5
 
@@ -23,6 +23,7 @@ completed task or release: current state, HEAD, latest tag, task list.
 - `9a7842f` Reformat fenced Python blocks in `README.md` and `docs/usage.md`
   (CI fix only, no behaviour change)
 - `a35e67d` Add HANDOFF.md
+- `4b98f1d` pipx-install target; `make release` ends with a local pipx install
 
 `CHANGELOG.md` already carries the two Makefile-template entries under
 **Unreleased**. The release fix and the docs reformat are not listed there.
@@ -38,7 +39,7 @@ console script of its own and `putup` comes from the pyscaffold dependency; the
 template leaves it empty. Two tests added in `tests/test_templates.py`
 (`TestMakefilePipxInstall`); README, `docs/usage.md` and `CHANGELOG.md` updated.
 Verified: `make -n pipx-install` here and in a freshly scaffolded project; Makefile
-tests pass; `make lint` green. Not yet committed.
+tests pass; `make lint` green. Committed as `4b98f1d` and pushed on 2026-09-25.
 
 ## What happened previously (2026-09-13)
 
