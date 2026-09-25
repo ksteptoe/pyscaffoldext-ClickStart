@@ -81,9 +81,9 @@ Fix applied and pushed as `9a7842f`:
    `.pre-commit-config.yaml.template` pins ruff-pre-commit `v0.6.9` and uses the
    legacy `ruff` hook id. Bumping it changes what `putup` generates, so it needs
    a release. Not started.
-4. **Stray files in the repo root.** `pyscaffoldDoc.md` and `pyscaffoldDoc2.md`
-   look like scratch notes; `build/`, `dist/` and `coverage.xml` are build
-   outputs. Check whether they are gitignored and tidy if not.
+4. ~~Stray files in the repo root~~ Done 2026-09-25: deleted the two scratch notes
+   `pyscaffoldDoc.md` and `pyscaffoldDoc2.md` (recoverable from git history before
+   the deleting commit). `build/`, `dist/` and `coverage.xml` do not show in git status.
 
 ## How to work here
 
