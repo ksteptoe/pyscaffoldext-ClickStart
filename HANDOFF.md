@@ -65,9 +65,8 @@ Fix applied and pushed as `9a7842f`:
    `pip install ruff` unpinned, so a future Ruff release can break lint with no
    code change. Options: pin to the version in the `dev` extra, or install
    `.[dev]` in the lint job. Policy call, not yet made.
-2. **CHANGELOG tidy.** `v2.3.0` is released but `CHANGELOG.md` still lists its
-   changes under **Unreleased** and has no entries for `12cb280` (release
-   command-injection fix) or `9a7842f`. Move them under a `v2.3.0` heading.
+2. ~~CHANGELOG tidy~~ Done 2026-09-25: 2.3.0 entries moved under their own
+   heading, with entries added for `12cb280` and `9a7842f`.
 3. **Pre-commit config is stale.** `.pre-commit-config.yaml` still references
    isort and black (2021 revs) and a `git://` URL for pre-commit-hooks, none of
    which match the Ruff-only tooling the project actually uses. Low priority.
