@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Generated projects: pre-commit now uses ruff-pre-commit v0.16.7 (was v0.6.9) with
+  the current `ruff-check` hook id, and the dev extra requires `ruff>=0.16.7`.
+- Generated projects: code templates end with exactly one trailing newline.
+
 ## Version 2.3.0 (2026-09-25)
 
 - Makefile template (and this repo's Makefile): new `pipx-install` target that runs

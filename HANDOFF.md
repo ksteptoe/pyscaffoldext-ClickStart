@@ -77,10 +77,18 @@ Fix applied and pushed as `9a7842f`:
    (`ruff-check`, `ruff-format`) plus pre-commit-hooks v6.0.0. Its
    end-of-file-fixer normalised trailing newlines in four templates and
    `pyproject.toml`. Full suite: 104 passed.
-5. **Template pre-commit Ruff rev is old.** The generated projects'
-   `.pre-commit-config.yaml.template` pins ruff-pre-commit `v0.6.9` and uses the
-   legacy `ruff` hook id. Bumping it changes what `putup` generates, so it needs
-   a release. Not started.
+5. ~~Template pre-commit Ruff rev is old~~ Done 2026-09-25: template pre-commit
+   now ruff-pre-commit v0.16.7 with `ruff-check`; template dev extra `ruff>=0.16.7`.
+   Unreleased; recorded in CHANGELOG under Unreleased.
+6. **Generated projects fail their own Ruff checks (pre-existing).** A fresh
+   `putup demo --clickstart` fails `pre-commit run --all-files`: `ruff check`
+   finds 4 fixable errors (import sorting) and `ruff format` would reformat
+   `docs/conf.py`, `src/<pkg>/__main__.py`, `api.py`, `cli.py`, and
+   `tests/integration/test_layout.py` changes too. Identical under Ruff 0.6.9 and
+   0.16.7, so not caused by the bump. Fix the templates (`docs/conf.py.template`,
+   `runner.template`, `api.template`, `cli.template`, tests templates) so generated
+   output is Ruff-clean, and add a test that runs Ruff on a generated project.
+   **Do this before the next release.**
 4. ~~Stray files in the repo root~~ Done 2026-09-25: deleted the two scratch notes
    `pyscaffoldDoc.md` and `pyscaffoldDoc2.md` (recoverable from git history before
    the deleting commit). `build/`, `dist/` and `coverage.xml` do not show in git status.
