@@ -68,8 +68,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Ruff
-        run: pip install ruff
+      # Install the exact Ruff pinned in pyproject.toml's dev extra, so CI lint
+      # matches local `make lint` and cannot drift when Ruff releases.
+      - name: Install Ruff (version pinned in pyproject.toml)
+        run: |
+          RUFF_SPEC=$(python -c 'import tomllib; d = tomllib.load(open("pyproject.toml", "rb")); print(next(r for r in d["project"]["optional-dependencies"]["dev"] if r.startswith("ruff")))')
+          echo "Installing $RUFF_SPEC"
+          pip install "$RUFF_SPEC"
 
       - name: Run Ruff linter
         run: ruff check .

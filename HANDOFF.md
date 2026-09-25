@@ -68,15 +68,19 @@ Fix applied and pushed as `9a7842f`:
 
 ## Open tasks
 
-1. **Decide whether to pin Ruff in CI.** `.github/workflows/ci.yml` runs
-   `pip install ruff` unpinned, so a future Ruff release can break lint with no
-   code change. Options: pin to the version in the `dev` extra, or install
-   `.[dev]` in the lint job. Policy call, not yet made.
+1. ~~Pin Ruff in CI~~ Done 2026-09-25: `ruff==0.16.7` pinned in the `dev` extra;
+   the CI lint job reads that pin from `pyproject.toml` and installs it; the
+   pre-commit ruff rev matches. **To upgrade Ruff, bump all three together.**
 2. ~~CHANGELOG tidy~~ Done 2026-09-25: 2.3.0 entries moved under their own
    heading, with entries added for `12cb280` and `9a7842f`.
-3. **Pre-commit config is stale.** `.pre-commit-config.yaml` still references
-   isort and black (2021 revs) and a `git://` URL for pre-commit-hooks, none of
-   which match the Ruff-only tooling the project actually uses. Low priority.
+3. ~~Pre-commit config is stale~~ Done 2026-09-25: replaced with Ruff-only
+   (`ruff-check`, `ruff-format`) plus pre-commit-hooks v6.0.0. Its
+   end-of-file-fixer normalised trailing newlines in four templates and
+   `pyproject.toml`. Full suite: 104 passed.
+5. **Template pre-commit Ruff rev is old.** The generated projects'
+   `.pre-commit-config.yaml.template` pins ruff-pre-commit `v0.6.9` and uses the
+   legacy `ruff` hook id. Bumping it changes what `putup` generates, so it needs
+   a release. Not started.
 4. **Stray files in the repo root.** `pyscaffoldDoc.md` and `pyscaffoldDoc2.md`
    look like scratch notes; `build/`, `dist/` and `coverage.xml` are build
    outputs. Check whether they are gitignored and tidy if not.

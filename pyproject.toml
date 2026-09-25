@@ -24,7 +24,9 @@ dev = [
     "pytest-cov>=5",
     "pytest-xdist>=3.6",
     "pytest-timeout>=2.3",
-    "ruff>=0.6",
+    # Exact pin: CI lint and .pre-commit-config.yaml use this same version. Bump all
+    # three together, otherwise a new Ruff release can fail CI with no code change.
+    "ruff==0.16.7",
     "pre-commit>=3.7",
     "build>=1.2",
     "twine>=5",
@@ -72,4 +74,3 @@ omit = ["tests/*"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-

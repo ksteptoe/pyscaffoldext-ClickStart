@@ -33,5 +33,3 @@ def ${package}_api(loglevel: int ):
     _logger.info(f"Version: {__version__}")
     # Code Here
     _logger.info("Script ends here")
-
-
