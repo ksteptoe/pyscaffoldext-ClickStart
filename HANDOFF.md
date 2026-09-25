@@ -43,6 +43,13 @@ tests pass; `make lint` green. Committed as `4b98f1d` and pushed on 2026-09-25.
 Released the same day as `v2.3.0` via `make release KIND=minor`; the new pipx step
 ran successfully and the local pipx venv now holds 2.3.0 (was 2.2.1).
 
+Follow-up (2026-09-25): this repo's own `Makefile` still used the pre-`12cb280`
+changelog handling, so a commit subject with backticks or `$(...)` was executed by
+`make changelog`, `changelog-md` and `release-*`. Ported the template's
+`git_changelog` define and temp-file `git tag -F` approach. Verified in throwaway
+repos with a bare remote: old Makefile executed the injected commands, new one
+tags the subject verbatim. Not shipped in the package, so no release needed.
+
 ## What happened previously (2026-09-13)
 
 CI had failed on the last two pushes (2026-08-31 and 2026-09-13). Both failures

@@ -237,25 +237,30 @@ PATCH := $(shell echo "$(LAST_TAG)" | sed -E 's/^v[0-9]+\.[0-9]+\.([0-9]+).*/\1/
 version: $(ENV_STAMP)
 	@"$(PY)" -m setuptools_scm || true
 
-# Changelog text since LAST_TAG (if LAST_TAG is v0.0.0 and doesn't exist, use full history)
-define CHANGELOG
-$(shell \
-  if git rev-parse "$(LAST_TAG)" >/dev/null 2>&1; then \
-    git log "$(LAST_TAG)..HEAD" --pretty=format:"- %s (%h)" --no-merges; \
-  else \
-    git log HEAD --pretty=format:"- %s (%h)" --no-merges; \
-  fi \
-)
+# Emit the change list by letting git write to stdout directly (full history if
+# LAST_TAG does not exist).
+#
+# This used to be captured with $(shell ...) and echoed back inside double quotes,
+# so a commit subject containing backticks or $(...) was EXECUTED by the shell
+# during `make changelog` and `make release`. Commit text must reach the shell
+# only as data, never as part of a command line. Same fix as Makefile.template.
+define git_changelog
+if git rev-parse "$(LAST_TAG)" >/dev/null 2>&1; then \
+  git log "$(LAST_TAG)..HEAD" --pretty=format:"- %s (%h)" --no-merges; \
+else \
+  git log HEAD --pretty=format:"- %s (%h)" --no-merges; \
+fi
 endef
 
 changelog: fetch-tags
 	@echo "Changes since $(LAST_TAG):"
-	@echo "$(CHANGELOG)"
+	@$(git_changelog)
+	@echo ""
 
 changelog-md: fetch-tags
 	@mkdir -p docs
 	@echo "Writing docs/CHANGELOG.md ..."
-	@printf "# Changelog\n\n## Since %s\n\n%s\n" "$(LAST_TAG)" "$(CHANGELOG)" > docs/CHANGELOG.md
+	@{ printf "# Changelog\n\n## Since %s\n\n" "$(LAST_TAG)"; $(git_changelog); printf "\n"; } > docs/CHANGELOG.md
 	@echo "✅ docs/CHANGELOG.md updated"
 
 release-show: fetch-tags $(ENV_STAMP)
@@ -279,19 +284,31 @@ NL := $(shell printf "\n")
 
 release-patch: fetch-tags check-clean
 	@NEW="v$(MAJOR).$(MINOR).$$(($(PATCH) + 1))"; \
-	git tag -a "$$NEW" -m "release: $$NEW$(NL)$(NL)$(CHANGELOG)"; \
+	echo "Tagging $$NEW (from LAST_TAG=$(LAST_TAG))"; \
+	TMP="$$(mktemp -t tagmsg.XXXXXX)"; \
+	{ printf 'release: %s\n\n' "$$NEW"; $(git_changelog); printf '\n'; } > "$$TMP"; \
+	git tag -a "$$NEW" -F "$$TMP"; \
+	rm -f "$$TMP"; \
 	git push origin "$$NEW"; \
 	echo "Tagged $$NEW"
 
 release-minor: fetch-tags check-clean
 	@NEW="v$(MAJOR).$$(($(MINOR) + 1)).0"; \
-	git tag -a "$$NEW" -m "release: $$NEW$(NL)$(NL)$(CHANGELOG)"; \
+	echo "Tagging $$NEW (from LAST_TAG=$(LAST_TAG))"; \
+	TMP="$$(mktemp -t tagmsg.XXXXXX)"; \
+	{ printf 'release: %s\n\n' "$$NEW"; $(git_changelog); printf '\n'; } > "$$TMP"; \
+	git tag -a "$$NEW" -F "$$TMP"; \
+	rm -f "$$TMP"; \
 	git push origin "$$NEW"; \
 	echo "Tagged $$NEW"
 
 release-major: fetch-tags check-clean
 	@NEW="v$$(($(MAJOR) + 1)).0.0"; \
-	git tag -a "$$NEW" -m "release: $$NEW$(NL)$(NL)$(CHANGELOG)"; \
+	echo "Tagging $$NEW (from LAST_TAG=$(LAST_TAG))"; \
+	TMP="$$(mktemp -t tagmsg.XXXXXX)"; \
+	{ printf 'release: %s\n\n' "$$NEW"; $(git_changelog); printf '\n'; } > "$$TMP"; \
+	git tag -a "$$NEW" -F "$$TMP"; \
+	rm -f "$$TMP"; \
 	git push origin "$$NEW"; \
 	echo "Tagged $$NEW"
 
