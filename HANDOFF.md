@@ -9,12 +9,12 @@ completed task or release: current state, HEAD, latest tag, task list.
 |---|---|
 | Branch | `main` |
 | HEAD | `4b98f1d` — Add pipx-install target; make release installs the tagged checkout via pipx |
-| Latest tag | `v2.2.5` (published to PyPI, 2026-06-15) |
-| Unreleased commits | 5 (see below) |
-| CI | Green on all six jobs (lint, build, 4× test matrix) as of run 34737250170 |
+| Latest tag | `v2.3.0` on `b3ec7bb` (published to PyPI via Upload Python Package run 36100410698, 2026-09-25) |
+| Unreleased commits | 0 |
+| CI | Green as of run 36100215577 (2026-09-25) |
 | Working tree | Clean, pushed to origin/main |
 
-### Unreleased since v2.2.5
+### Released in v2.3.0 (previously unreleased since v2.2.5)
 
 - `12cb280` Stop commit messages being executed during a release
 - `127aee9` Makefile template: stamp targets always run so the signature cache
@@ -40,6 +40,8 @@ template leaves it empty. Two tests added in `tests/test_templates.py`
 (`TestMakefilePipxInstall`); README, `docs/usage.md` and `CHANGELOG.md` updated.
 Verified: `make -n pipx-install` here and in a freshly scaffolded project; Makefile
 tests pass; `make lint` green. Committed as `4b98f1d` and pushed on 2026-09-25.
+Released the same day as `v2.3.0` via `make release KIND=minor`; the new pipx step
+ran successfully and the local pipx venv now holds 2.3.0 (was 2.2.1).
 
 ## What happened previously (2026-09-13)
 
@@ -63,11 +65,9 @@ Fix applied and pushed as `9a7842f`:
    `pip install ruff` unpinned, so a future Ruff release can break lint with no
    code change. Options: pin to the version in the `dev` extra, or install
    `.[dev]` in the lint job. Policy call, not yet made.
-2. **Release.** Three commits are sitting unreleased on top of `v2.2.5`. The
-   Makefile-template stamp fix is a real bug fix for generated projects, so a
-   `make release KIND=patch` (→ `v2.2.6`) is warranted. Before releasing, add
-   `CHANGELOG.md` entries for `12cb280` and `9a7842f` if you want them recorded.
-   Releasing is always the main session's job, always confirmed with Kevin first.
+2. **CHANGELOG tidy.** `v2.3.0` is released but `CHANGELOG.md` still lists its
+   changes under **Unreleased** and has no entries for `12cb280` (release
+   command-injection fix) or `9a7842f`. Move them under a `v2.3.0` heading.
 3. **Pre-commit config is stale.** `.pre-commit-config.yaml` still references
    isort and black (2021 revs) and a `git://` URL for pre-commit-hooks, none of
    which match the Ruff-only tooling the project actually uses. Low priority.
